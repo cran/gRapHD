@@ -6,7 +6,7 @@
 }
 
 \usage{
-  findEd(edges,p,previous=NULL,varType,from=0,exact=FALSE,join=FALSE)
+  findEd(edges,p,previous=NULL,numCat,from=0,exact=FALSE,join=FALSE)
 }
 
 \arguments{
@@ -14,8 +14,7 @@
                column one of the vertices in the edge.}
   \item{p}{number of vertices.}
   \item{previous}{result of a previous run of \code{findEd}.}
-  \item{varType}{vector indicating the type of each variable: 0 if continuous,
-                 or 1 if discrete.}
+  \item{numCat}{vector with number of levels for each variable (0 if continuous).}
   \item{from}{initial vertex to be used in \code{\link[gRapHD:MCS]{MCS}}.}
   \item{exact}{logical indicating if the exact algorithm for finding
                add-eligible edges is to be used. Default is
@@ -62,7 +61,7 @@ Lauritzen, S.L. (1996) \emph{Graphical Models}, Oxford University Press.\cr
 
 \examples{
   edges <- matrix(c(1,2,2,3,2,4,2,5,2,6,3,4,4,5,5,6),ncol=2,byrow=TRUE)
-  addEligible <- findEd(edges=edges,p=6,previous=NULL,varType=rep(0,6),from=1)
+  addEligible <- findEd(edges=edges,p=6,previous=NULL,numCat=rep(0,6),from=1)
   #    > str(addEligible)
   #    List of 2
   #     $ edges: num [1:7, 1:5] 1 1 3 1 4 3 1 3 4 5 ...
@@ -91,6 +90,6 @@ Lauritzen, S.L. (1996) \emph{Graphical Models}, Oxford University Press.\cr
   #    5: number of parameters for the edge (used if previous != NULL)
 
   # note that the edge 3-6 (row 6) is actually a "false positive". If it's used
-  # from=3,4,5, or 6, this "error" doesn't happen.
+  # from=3,4,5, or 6, this does not happen.
 }
 \keyword{graphs}

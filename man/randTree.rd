@@ -39,7 +39,7 @@ pp. 879-887, June 2003.
 
 \examples{
   tree <- randTree(p=10, seed=1)
-  plotG(edges=tree$edges)
+  plot(as.gRapHD(tree$edges))
   #    > tree
   #    $edges
   #          [,1] [,2]

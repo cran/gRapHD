@@ -6,7 +6,7 @@
 }
 
 \usage{
-  minForest(dataset,homog=TRUE,forbEdges=NULL,stat="BIC")
+  minForest(dataset,homog=TRUE,forbEdges=NULL,stat="BIC",...)
 }
 
 \arguments{
@@ -24,6 +24,7 @@
               dataset)}; where the parameters \code{varType} and \code{numCat}
               are as defined in the Value section; \code{newEdge} is a vector
               with length two; and \code{dataset} is a matrix (n by p).}
+  \item{...}{arguments to be passed to the user function in \code{stat}.}
 }
 
 \value{
@@ -34,8 +35,7 @@
   \item{p}{number of variables (vertices) in the model.}
   \item{stat.minForest}{measure used (LR, AIC, or BIC).}
   \item{statSeq}{vector with value of \code{stat.minForest} for each edge.}
-  \item{varType}{vector indicating the type of each variable: 0 if continuous,
-                 or 1 if discrete.}
+  \code{vertNames} - vector with the original vertices' names.\cr
   \item{numCat}{vector with number of levels for each variable (0 if continuous).}
   \item{homog}{\code{TRUE} if the covariance is homogeneous.}
   \item{numP}{vector with number of estimated parameters for each edge.}
@@ -80,7 +80,7 @@ Graphical Models Using Minimal AIC and BIC forests. \emph{BMC Bioinformatics}.
   #          2. no forbidden edges
   #          3. the measure used is the LR (the result is a tree)
   m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-  plotG(model=m1,numIter=1000)
+  plot(m1,numIter=1000)
 
   ##############################################################################
   # Example with discrete variables
@@ -90,7 +90,7 @@ Graphical Models Using Minimal AIC and BIC forests. \emph{BMC Bioinformatics}.
   #          2. no forbidden edges
   #          3. the measure used is the LR (the result is a tree)
   m1 <- minForest(dsDiscr,homog=TRUE,forbEdges=NULL,stat="LR")
-  plotG(model=m1,numIter=1000)
+  plot(m1,numIter=1000)
 
   ##############################################################################
   # Example with mixed variables
@@ -100,14 +100,14 @@ Graphical Models Using Minimal AIC and BIC forests. \emph{BMC Bioinformatics}.
   #          2. no forbidden edges
   #          3. the measure used is the LR (the result is a tree)
   m1 <- minForest(dsMixed,homog=TRUE,forbEdges=NULL,stat="LR")
-  plotG(model=m1,numIter=1000)
+  plot(m1,numIter=1000)
   
   ##############################################################################
   # Example using a user defined function
   #   The function userFun calculates the same edges weigths as the option
   # stat="LR". It means that the final result, using either option, is the
   # same.
-  userFun <- function(newEdge,varType,numCat,dataset)
+  userFun <- function(newEdge,numCat,dataset)
   {
     sigma <- var(dataset[,newEdge])
     v <- nrow(dataset)*log(prod(diag(sigma))/det(sigma))

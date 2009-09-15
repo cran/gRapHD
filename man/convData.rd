@@ -16,9 +16,9 @@
 \value{
   List:
   \item{dataset}{Matrix.}
-  \item{varType}{Vector: 0 for continuous, 1 for discrete.}
   \item{numCat}{Vector with the number of levels in each variable (0 if
                 continuous).}
+  \code{vertNames} - vector with the original vertices' names.\cr
 }
 
 \details{

@@ -348,7 +348,8 @@ static void cleanMem(struct nodeBT *root)
 /******************************************************************************/
 static void bTree(struct nodeBT *curr, unsigned int *vert1, unsigned int *vert2,
                   double *LR, unsigned int p, unsigned int *comp,
-                  unsigned char *type, SEXP varType, unsigned short *numP,
+//                  unsigned char *type, SEXP varType, unsigned short *numP,
+                  unsigned char *type, SEXP numCat, unsigned short *numP,
                   unsigned int *errors)
 {
   unsigned int *w, *ind1, *ind2, *ind3, i, min;
@@ -358,7 +359,8 @@ static void bTree(struct nodeBT *curr, unsigned int *vert1, unsigned int *vert2,
   if (curr == NULL) return; //reached the end of a branch
 
   //recur to a subtree
-  bTree(curr->greater,vert1,vert2,LR,p,comp,type,varType,numP,errors);
+//  bTree(curr->greater,vert1,vert2,LR,p,comp,type,varType,numP,errors);
+  bTree(curr->greater,vert1,vert2,LR,p,comp,type,numCat,numP,errors);
   if (isnan(curr->value) || !isfinite(curr->value))
   {
     errors[0]++;
@@ -375,10 +377,15 @@ static void bTree(struct nodeBT *curr, unsigned int *vert1, unsigned int *vert2,
 
         if (comp[w[0]] != comp[w[1]])
         {
-          mix1 = (INTEGER(varType)[w[0]-1]==0) & (type[w[0]]==2);
-          mix2 = (INTEGER(varType)[w[1]-1]==0) & (type[w[1]]==2);
-          forbiddenPath = ((INTEGER(varType)[w[0]-1]==1) & mix2) |
-                          ((INTEGER(varType)[w[1]-1]==1) & mix1) |
+//          mix1 = (INTEGER(varType)[w[0]-1]==0) & (type[w[0]]==2);
+          mix1 = (INTEGER(numCat)[w[0]-1]==0) & (type[w[0]]==2);
+//          mix2 = (INTEGER(varType)[w[1]-1]==0) & (type[w[1]]==2);
+          mix2 = (INTEGER(numCat)[w[1]-1]==0) & (type[w[1]]==2);
+//          forbiddenPath = ((INTEGER(varType)[w[0]-1]==1) & mix2) |
+//                          ((INTEGER(varType)[w[1]-1]==1) & mix1) |
+//                          (mix1 & mix2);
+          forbiddenPath = ((INTEGER(numCat)[w[0]-1]!=0) & mix2) |
+                          ((INTEGER(numCat)[w[1]-1]!=0) & mix1) |
                           (mix1 & mix2);
           if (!forbiddenPath)
           {
@@ -415,8 +422,9 @@ static void bTree(struct nodeBT *curr, unsigned int *vert1, unsigned int *vert2,
       }
     }
   //recur to a subtree
-  bTree(curr->less,vert1,vert2,LR,p,comp,type,varType,numP,errors);
-  
+//  bTree(curr->less,vert1,vert2,LR,p,comp,type,varType,numP,errors);
+  bTree(curr->less,vert1,vert2,LR,p,comp,type,numCat,numP,errors);
+
   free(curr); //release the node (it has already been visited)
 }
 
@@ -435,7 +443,9 @@ static void bTree(struct nodeBT *curr, unsigned int *vert1, unsigned int *vert2,
 //     stat - 0 (LR), 1 (BIC), or 2 (AIC)
 // Out: pointer to a nodeBT
 /******************************************************************************/
-struct nodeBT* calc(SEXP dataset, SEXP varType, SEXP numCat, bool homog,
+//struct nodeBT* calc(SEXP dataset, SEXP varType, SEXP numCat, bool homog,
+//                    SEXP forbEdges, unsigned short stat, unsigned int *errors)
+struct nodeBT* calc(SEXP dataset, SEXP numCat, bool homog,
                     SEXP forbEdges, unsigned short stat, unsigned int *errors)
 
 {
@@ -451,7 +461,7 @@ struct nodeBT* calc(SEXP dataset, SEXP varType, SEXP numCat, bool homog,
   bool addEdge; //indicates if the edge is eligible, meaning that its not NA,...
   unsigned int numUsedObs; //to count the number of obs not NA in the mixed case
 
-  p = length(varType); //number of variables
+  p = length(numCat); //number of variables
   n = length(dataset)/p; //number of observations
   N = p*(p-1)/2; //number of possible edges
 
@@ -474,7 +484,8 @@ struct nodeBT* calc(SEXP dataset, SEXP varType, SEXP numCat, bool homog,
       {
         free(ind);
         addEdge = true;
-        if ((INTEGER(varType)[i]==0) & (INTEGER(varType)[j]==0)) //both continuous
+//        if ((INTEGER(varType)[i]==0) & (INTEGER(varType)[j]==0)) //both continuous
+        if ((INTEGER(numCat)[i]==0) & (INTEGER(numCat)[j]==0)) //both continuous
         {
           numUsedObs = V1 = V2 = C12 = M1 = M2 = 0;
           identical = idX = idY = 0;
@@ -509,7 +520,8 @@ struct nodeBT* calc(SEXP dataset, SEXP varType, SEXP numCat, bool homog,
           numP = 5-(2+2);
         }
         else
-          if ((INTEGER(varType)[i]==1) & (INTEGER(varType)[j]==1)) //both discrete
+//          if ((INTEGER(varType)[i]==1) & (INTEGER(varType)[j]==1)) //both discrete
+          if ((INTEGER(numCat)[i]!=0) & (INTEGER(numCat)[j]!=0)) //both discrete
           {
             if ((INTEGER(numCat)[i]==1) || (INTEGER(numCat)[j]==1))
             {
@@ -565,7 +577,8 @@ struct nodeBT* calc(SEXP dataset, SEXP varType, SEXP numCat, bool homog,
           {
             continuous = j;
             discrete = i;
-            if (INTEGER(varType)[i]==0)
+//            if (INTEGER(varType)[i]==0)
+            if (INTEGER(numCat)[i]==0)
             {
               continuous = i;
               discrete = j;
@@ -674,7 +687,9 @@ struct nodeBT* calc(SEXP dataset, SEXP varType, SEXP numCat, bool homog,
 // Out: matrix (p-1) by 3: [,1] = first vertices, [,2] = second vertices;
 //                         [,3] = LR.
 /******************************************************************************/
-SEXP minForest(SEXP dataset, SEXP varType, SEXP numCat, SEXP HOMOG,
+//SEXP minForest(SEXP dataset, SEXP varType, SEXP numCat, SEXP HOMOG,
+//               SEXP forbEdges, SEXP STAT,SEXP VALUES)
+SEXP minForest(SEXP dataset, SEXP numCat, SEXP HOMOG,
                SEXP forbEdges, SEXP STAT,SEXP VALUES)
 {
   unsigned int i, p, n, k, N, Nv, *errors, *w;
@@ -685,12 +700,13 @@ SEXP minForest(SEXP dataset, SEXP varType, SEXP numCat, SEXP HOMOG,
 
   stat = INTEGER(STAT)[0];
   errors = (unsigned int *)calloc(1,sizeof(unsigned int));
-  p = length(varType); //number of variables
+  p = length(numCat); //number of variables
   n = length(dataset)/p; //number of observations
   N = p*(p-1)/2; //number of possible edges
 
   if (stat<3) //means LR, AIC, or BIC
-    root = calc(dataset,varType,numCat,homog,forbEdges,stat,errors);
+//    root = calc(dataset,varType,numCat,homog,forbEdges,stat,errors);
+    root = calc(dataset,numCat,homog,forbEdges,stat,errors);
   else
   {
     Nv = length(VALUES)/2;
@@ -730,12 +746,14 @@ SEXP minForest(SEXP dataset, SEXP varType, SEXP numCat, SEXP HOMOG,
   for (i=1; i<=p; i++)
   {
     comp[i] = i;
-    type[i] = INTEGER(varType)[i-1];
+//    type[i] = INTEGER(varType)[i-1];
+    type[i] = 1*(INTEGER(numCat)[i-1]!=0);
   }
   i = errors[0];
   free(errors);
   errors = (unsigned int *)calloc(i+1,sizeof(unsigned int));
-  bTree(root,vert1,vert2,LR,p,comp,type,varType,numParam,errors);
+//  bTree(root,vert1,vert2,LR,p,comp,type,varType,numParam,errors);
+  bTree(root,vert1,vert2,LR,p,comp,type,numCat,numParam,errors);
 
   free(comp);
   PROTECT(tree = allocMatrix(REALSXP, vert1[0], 4));
@@ -798,7 +816,9 @@ SEXP minForest(SEXP dataset, SEXP varType, SEXP numCat, SEXP HOMOG,
 // Out: matrix (p-1) by 3: [,1] = first vertices, [,2] = second vertices;
 //                         [,3] = LR.
 /******************************************************************************/
-SEXP calcStat(SEXP dataset, SEXP varType, SEXP numCat, SEXP HOMOG,
+//SEXP calcStat(SEXP dataset, SEXP varType, SEXP numCat, SEXP HOMOG,
+//              SEXP forbEdges, SEXP STAT,SEXP VALUES)
+SEXP calcStat(SEXP dataset, SEXP numCat, SEXP HOMOG,
               SEXP forbEdges, SEXP STAT,SEXP VALUES)
 {
   unsigned int i, p, n, k, N, Nv, *w;
@@ -810,13 +830,14 @@ SEXP calcStat(SEXP dataset, SEXP varType, SEXP numCat, SEXP HOMOG,
 
   measure = INTEGER(STAT)[0];
 
-  p = length(varType); //number of variables
+  p = length(numCat); //number of variables
   n = length(dataset)/p; //number of observations
   N = p*(p-1)/2; //number of possible edges
   errors = (unsigned int *)calloc(1,sizeof(unsigned int));
 
   if (measure<3) //means LR, AIC, or BIC
-    root = calc(dataset,varType,numCat,homog,forbEdges,measure,errors);
+//    root = calc(dataset,varType,numCat,homog,forbEdges,measure,errors);
+    root = calc(dataset,numCat,homog,forbEdges,measure,errors);
   else
   {
     Nv = length(VALUES)/2;

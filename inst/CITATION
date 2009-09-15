@@ -9,10 +9,9 @@ citHeader("To cite package 'gRapHD' in publications use:")
               author = personList(as.person("Gabriel C. G. de Abreu"),
                                   as.person("Rodrigo Labouriau"),
                                   as.person("David Edwards")),
-              journal = "arXiv",
               year = 2009,
               note = "arXiv:0909.1234v2",
-
+              journal = "arXiv",
               textVersion =
               paste("Gabriel C. G. de Abreu, Rodrigo Labouriau, David Edwards,",
                     " (",2009,"). ",

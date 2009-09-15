@@ -35,10 +35,10 @@ David Edwards (\email{David.Edwards@agrsci.dk})
 \examples{
   data(dsCont)
   m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-  plotG(edges=m1$edges,numIter=1000)
+  plot(m1,numIter=1000)
   
   v <- c(1,11,21,19,30,25,22,24,34,9,20,29)
-  subEdges <- SubGraph(edges=m1$edges,v=v)$edges
-  plotG(edges=subEdges,v=v,numIter=1500)
+  subM1 <- SubGraph(model=m1,v=v)
+  plot(subM1,numIter=1500)
 }
 \keyword{graphs}

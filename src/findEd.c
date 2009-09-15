@@ -118,7 +118,9 @@ unsigned int *whichMaxFE(unsigned int *d)
 //      graph is not triangulated; the second element [1] is the vertex numbered
 //      as 1; [2] the vertex numbered as 2, ...
 /******************************************************************************/
-unsigned int *mcsFE(SEXP v1, SEXP v2, unsigned int p, SEXP varType, unsigned int from)
+//varType
+//unsigned int *mcsFE(SEXP v1, SEXP v2, unsigned int p, SEXP varType, unsigned int from)
+unsigned int *mcsFE(SEXP v1, SEXP v2, unsigned int p, SEXP numCat, unsigned int from)
 {
   bool bTriangulated, found;
   unsigned int i, j, n_edges, v, first;
@@ -146,7 +148,9 @@ unsigned int *mcsFE(SEXP v1, SEXP v2, unsigned int p, SEXP varType, unsigned int
     v = 1;
     found = false;
     while ((i<=p) & !found)
-      if (INTEGER(varType)[i-1] == 1)
+//varType
+//      if (INTEGER(varType)[i-1] == 1)
+      if (INTEGER(numCat)[i-1] != 0)
         found = true;
       else
         i++;
@@ -195,7 +199,9 @@ unsigned int *mcsFE(SEXP v1, SEXP v2, unsigned int p, SEXP varType, unsigned int
       i = 1;
       found = false;
       while ((i<=p) & !found)
-        if ((INTEGER(varType)[i-1] == 1) && (numbered[i]==0))
+//varType
+//        if ((INTEGER(varType)[i-1] == 1) && (numbered[i]==0))
+        if ((INTEGER(numCat)[i-1] != 0) && (numbered[i]==0))
           found = true;
         else
           i++;
@@ -211,7 +217,9 @@ unsigned int *mcsFE(SEXP v1, SEXP v2, unsigned int p, SEXP varType, unsigned int
       i = 1;
       found = false;
       while ((i<=ind2[0]) & !found)
-        if (INTEGER(varType)[ind2[i]-1] == 1)
+//varType
+//        if (INTEGER(varType)[ind2[i]-1] == 1)
+        if (INTEGER(numCat)[ind2[i]-1] != 0)
           found = true;
         else
           i++;
@@ -588,7 +596,10 @@ unsigned int rank(double *A, unsigned int n, char type)
 //        S - list with kk elements (separators)
 //        total - number of lines that must be used from the matrix edges (<=k)
 /******************************************************************************/
-SEXP findEd(SEXP v1, SEXP v2, SEXP pp, SEXP previous, SEXP varType, SEXP FROM,
+//varType
+//SEXP findEd(SEXP v1, SEXP v2, SEXP pp, SEXP previous, SEXP varType, SEXP FROM,
+//            SEXP USERANK, SEXP JOIN)
+SEXP findEd(SEXP v1, SEXP v2, SEXP pp, SEXP previous, SEXP numCat, SEXP FROM,
             SEXP USERANK, SEXP JOIN)
 {
   unsigned int i, j, k, x, y, z, ii, jj, iii, kk;
@@ -622,7 +633,9 @@ SEXP findEd(SEXP v1, SEXP v2, SEXP pp, SEXP previous, SEXP varType, SEXP FROM,
   // FIND THE PERFECT SEQUENCE
   perfNaux = (unsigned int *)calloc(p+1,sizeof(unsigned int));
   perfNaux[0] = 0;
-  perfN = mcsFE(v1,v2,p,varType,from); //the perfect numbering
+//varType
+//  perfN = mcsFE(v1,v2,p,varType,from); //the perfect numbering
+  perfN = mcsFE(v1,v2,p,numCat,from); //the perfect numbering
   for (i=1;i<=p;i++)
   {
     perfNaux[0]++;
@@ -939,7 +952,9 @@ SEXP findEd(SEXP v1, SEXP v2, SEXP pp, SEXP previous, SEXP varType, SEXP FROM,
 //        separators - list
 //        residuals - list
 /******************************************************************************/
-SEXP perfSets(SEXP v1, SEXP v2, SEXP pp, SEXP varType, SEXP FROM)
+//varType
+//SEXP perfSets(SEXP v1, SEXP v2, SEXP pp, SEXP varType, SEXP FROM)
+SEXP perfSets(SEXP v1, SEXP v2, SEXP pp, SEXP numCat, SEXP FROM)
 {
   unsigned int i, j, p;
   unsigned int numPr=0;
@@ -957,7 +972,9 @@ SEXP perfSets(SEXP v1, SEXP v2, SEXP pp, SEXP varType, SEXP FROM)
   // FIND THE PERFECT SEQUENCE
   perfNaux = (unsigned int *)calloc(p+1,sizeof(unsigned int));
   perfNaux[0] = 0;
-  perfN = mcsFE(v1,v2,p,varType,from); //the perfect numbering
+//varType
+//  perfN = mcsFE(v1,v2,p,varType,from); //the perfect numbering
+  perfN = mcsFE(v1,v2,p,numCat,from); //the perfect numbering
   if (perfN[0]!=0)
   {
     for (i=1;i<=p;i++)
@@ -1260,7 +1277,9 @@ void jTree(unsigned int *C[],unsigned int *S[],unsigned int numC,
 //                   indSepOrig[i] in separators
 //      cliques - cliques from MCS
 /******************************************************************************/
-SEXP juncTree(SEXP v1, SEXP v2, SEXP pp, SEXP varType)
+//varType
+//SEXP juncTree(SEXP v1, SEXP v2, SEXP pp, SEXP varType)
+SEXP juncTree(SEXP v1, SEXP v2, SEXP pp, SEXP numCat)
 {
   unsigned int i, j;
   unsigned int numPr = 0;
@@ -1276,7 +1295,9 @@ SEXP juncTree(SEXP v1, SEXP v2, SEXP pp, SEXP varType)
   // FIND THE PERFECT SEQUENCE
   perfNaux = (unsigned int *)calloc(p+1,sizeof(unsigned int));
   perfNaux[0] = 0;
-  perfN = mcsFE(v1,v2,p,varType,from); //the perfect numbering
+//varType
+//  perfN = mcsFE(v1,v2,p,varType,from); //the perfect numbering
+  perfN = mcsFE(v1,v2,p,numCat,from); //the perfect numbering
   for (i=1;i<=p;i++)
   {
     perfNaux[0]++;

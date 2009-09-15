@@ -79,7 +79,7 @@ David Edwards (\email{David.Edwards@agrsci.dk})
   #          2. no forbidden edges
   #          3. the measure used is the LR (the result is a tree)
   m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-  plotG(model=m1,numIter=1000)
+  plot(m1,numIter=1000)
 
   # m2 <- stepw(m1,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL)
   #          1. m1 is the result of minForest
@@ -88,7 +88,7 @@ David Edwards (\email{David.Edwards@agrsci.dk})
   #          4. if saveCH="XXX", a file "XXX_00000i.RData" is saved for each iter
   #          5. no forbidden edges
   m2 <- stepw(m1,dsCont,stat="BIC",saveCH=NULL,forbEdges=NULL)
-  plotG(model=m2,numIter=1000)
+  plot(m2,numIter=1000)
 
   ##############################################################################
   # Example with discrete variables
@@ -98,7 +98,7 @@ David Edwards (\email{David.Edwards@agrsci.dk})
   #          2. no forbidden edges
   #          3. the measure used is the LR (the result is a tree)
   m1 <- minForest(dsDiscr,homog=TRUE,forbEdges=NULL,stat="LR")
-  plotG(model=m1,numIter=1000)
+  plot(m1,numIter=1000)
 
   # m2 <- stepw(m1,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL)
   #          1. m1 is the result of minForest
@@ -107,7 +107,7 @@ David Edwards (\email{David.Edwards@agrsci.dk})
   #          4. if saveCH="XXX", a file "XXX_00000i.RData" is saved for each iter
   #          5. no forbidden edges
   m2 <- stepw(m1,dsDiscr,stat="BIC",saveCH=NULL,forbEdges=NULL)
-  plotG(model=m2,numIter=1000)
+  plot(m2,numIter=1000)
 
   ##############################################################################
   # Example with mixed variables
@@ -117,7 +117,7 @@ David Edwards (\email{David.Edwards@agrsci.dk})
   #          2. no forbidden edges
   #          3. the measure used is the LR (the result is a tree)
   m1 <- minForest(dsMixed,homog=TRUE,forbEdges=NULL,stat="LR")
-  plotG(model=m1,numIter=1000)
+  plot(m1,numIter=1000)
 
   # m2 <- stepw(m1,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL)
   #          1. m1 is the result of minForest
@@ -126,7 +126,7 @@ David Edwards (\email{David.Edwards@agrsci.dk})
   #          4. if saveCH="XXX", a file "XXX_00000i.RData" is saved for each iter
   #          5. no forbidden edges
   m2 <- stepw(m1,dsMixed,stat="BIC",saveCH=NULL,forbEdges=NULL)
-  plotG(model=m2,numIter=1000)
+  plot(m2,numIter=1000)
 
   ##############################################################################
   # Example using a user defined function

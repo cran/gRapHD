@@ -40,6 +40,7 @@ David Edwards (\email{David.Edwards@agrsci.dk})
 \examples{
   data(dsCont)
   m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-  plotG(edges=neighbourhood(model=m1,orig=27,rad=2)$edges)
+  aux <- neighbourhood(model=m1,orig=27,rad=2)
+  plot(as.gRapHD(aux$edges,p=m1$p),vert=aux$v[,1])
 }
 \keyword{graphs}

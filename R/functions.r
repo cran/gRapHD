@@ -32,7 +32,7 @@
 #  stepw <- function(model,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL,
 #                    exact=FALSE,initial=NULL,threshold=0,join=FALSE)
 #  neighbours <- function(model=NULL,edges=NULL,v)
-#  findEd <- function(edges,p,previous=NULL,varType,from=0,exact=FALSE,join=F)
+#  findEd <- function(edges,p,previous=NULL,numCat,from=0,exact=FALSE,join=F)
 #  perfSets <- function(model=NULL,edges=NULL,p=NULL,varType=0,from=0)
 #  rowProds <- function(x,na.rm=TRUE)
 #  calcStat <- function(dataset,homog=TRUE,forbEdges=NULL,stat="LR")
@@ -41,6 +41,13 @@
 #                    useWeights=FALSE,hlv=NULL,hlc="red",vs=0.01,
 #                    pos=NULL,edcol="darkgray",edlty=1,edlwd=1,vlcol=0,
 #                    sb=1,lcex=.40,vlabs=NULL,asp=NA,disp=TRUE,font=1)
+#  plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
+#                          plotVert=TRUE,labelVert=TRUE,energy=FALSE,
+#                          useWeights=FALSE,vert.hl=NULL,col.hl="red",
+#                          vert.radii=0.01,coord=NULL,col.ed="darkgray",lty.ed=1,
+#                          lwd.ed=1,lwd.vert=1,border=0,symbol.vert=1,
+#                          cex.vert.label=.40,vert.labels=NULL,asp=NA,disp=TRUE,
+#                          font=par("font"),...)
 #  neighbourhood <- function(model=NULL,edges=NULL,orig=NULL,rad=1)
 #  adjMat <- function(model=NULL,edges=NULL,p=NULL)
 #  Degree <- function(model=NULL,edges=NULL,v=NULL)
@@ -70,8 +77,6 @@
 #   stat.minForest - measure used (LR, AIC, or BIC).
 #   stat.stepw - measure used (LR, AIC, or BIC).
 #   statSeq - vector with value of stat.minForest for each edge.
-#   varType - vector indicating the type of each variable: 0 if continuous, or
-#             1 if discrete.
 #   numCat - vector with number of levels for each variable (0 if continuous).
 #   homog - TRUE if the covariance is homogeneous.
 #   numP - vector with number of estimated parameters for each edge.
@@ -96,24 +101,32 @@ SubGraph <- function(model=NULL,edges=NULL,v=NULL,p=0)
   {
     if (class(model)!="gRapHD")
       stop("Model must be of class gRapHD.")
-    edges <- model$edges
     result <- model
+    edges <- model$edges
   }
   else
+  {
+    p <- ifelse(NROW(edges)==0,p,max(max(edges),p))
     result <- as.gRapHD(edges,p=p)
-    
-  if (NROW(edges)==0)
-    return(as.gRapHD(NULL,p=result$p,varType=result$varType,numCat=result$numCat,homog=result$homog))
+  }
 
-  if (is.null(v) || length(v)==0)
-    subEdges <- edges
-  else
+  if (NROW(edges)==0)
+    return(as.gRapHD(NULL,p=result$p,numCat=result$numCat,homog=result$homog))
+
+  if (!is.null(v) & length(v)!=0)
   {
     v <- sort(unique(v))
+    if (max(v)>result$p)
+      stop(paste("v must be in [1,",result$p,"].",sep=""))
     ind <- apply(edges,1,function(x,y){length(intersect(x,y))==2},y=v)
     result$edges <- matrix(edges[ind,],ncol=2)
     result$statSeq <- result$statSeq[ind]
     result$numP <- result$numP[ind]
+    result$vertNames <- result$vertNames[v]
+    aux <- rep(0,result$p)
+    aux[v] <- 1:length(v)
+    result$edges <- cbind(aux[result$edges[,1]],aux[result$edges[,2]])
+    rm(aux)
     ind <- (1:nrow(edges))[ind]
     # if minForest was used, the resulting edges are the first in the list
     # and after come the edges from stepw
@@ -148,6 +161,7 @@ SubGraph <- function(model=NULL,edges=NULL,v=NULL,p=0)
     if (!is.null(result$userDef))
       if (length(ind)>0)
         result$userDef <- c(1,length(ind))
+    result$p <- length(v)
   }
   return(result)
 }
@@ -188,15 +202,16 @@ MCS <- function(model=NULL,edges=NULL,v=0,p=NULL)
     edges <- model$edges
     p <- model$p
   }
+  else
+    v <- max(c(v,1))  
 
   if (NROW(edges)==0 && is.null(p))
     stop("p must not be NULL.")
   if (is.null(p))
     p <- max(edges)
+  v <- ifelse(v==0,1,v)
   if (v > p)
-    stop("v > p!!")
-  v <- max(c(v,1))
-
+    stop(paste("v must be in [1,",p,"].",sep=""))
   v1 <- edges[,1]
   v2 <- edges[,2]
   storage.mode(v1) <- storage.mode(v2) <- "integer"
@@ -231,6 +246,8 @@ DFS <- function(model=NULL,edges=NULL, v, p=NULL)
       stop("No edges.")
   if (is.null(p))
     p <- max(edges)
+  if (v>p)
+    stop(paste("v must be in [1,",p,"].",sep=""))
 
   v1 <- edges[,1]
   v2 <- edges[,2]
@@ -261,13 +278,12 @@ DFS <- function(model=NULL,edges=NULL, v, p=NULL)
 #                              BIC)
 #             end (integer, the last edge in the tree/forest)
 #             statSeq (weight of each edges - LR,BIC,AIC)
-#             varType (vector, 0=variable is continuous; 1=discrete)
 #             numCat (vector, number of catagories in each discrete variable;
 #                     if the variable is continuous numCat=0)
 #             homog (boolean - if the covariance is homogeneous)
 #             numP (vector, number of parameters in each edge)
 ################################################################################
-minForest <- function(dataset,homog=TRUE,forbEdges=NULL,stat="BIC")
+minForest <- function(dataset,homog=TRUE,forbEdges=NULL,stat="BIC",...)
 {
   if (length(stat)==0)
     stop("No valid measure. Options: LR, BIC, AIC, or a user defined function.")
@@ -285,12 +301,6 @@ minForest <- function(dataset,homog=TRUE,forbEdges=NULL,stat="BIC")
       stop("No valid measure. Options: LR, BIC, AIC, or a user defined function.")
   }
 
-  statS <- stat
-  aux <- convData(dataset)
-  dataset <- aux$ds
-  varType <- aux$varType
-  numCat <- aux$numCat
-  rm(aux)
   p <- ncol(dataset)
   n <- nrow(dataset)
   if (is.null(forbEdges))
@@ -304,7 +314,6 @@ minForest <- function(dataset,homog=TRUE,forbEdges=NULL,stat="BIC")
     y <- forbEdges[,2]
     forbEdges <- (x-1)*p-(x-1)*x/2 + y-x #simpler representation of the edges
   }
-
   values <- NULL
   if (stat == 3)
   {
@@ -313,20 +322,26 @@ minForest <- function(dataset,homog=TRUE,forbEdges=NULL,stat="BIC")
       {
         x <- (i-1)*p-(i-1)*i/2 + j-i
         if (!is.element(x,forbEdges))
-          values <- rbind(values,FUN(c(i,j),varType,numCat,dataset))
+          values <- rbind(values,FUN(c(i,j),numCat,dataset,...))
         else
           values <- rbind(values,NA)
       }
   }
 
+  statS <- stat
+  aux <- convData(dataset)
+  dataset <- aux$ds
+  numCat <- aux$numCat
+  result <- aux$vertNames
+  rm(aux)
+
   if (sum(is.na(dataset))>0)
     stop("Missing values not allowed.")
 
   storage.mode(values) <- storage.mode(dataset) <- "double"
-  storage.mode(varType) <- "integer"
   storage.mode(numCat) <- storage.mode(homog) <- "integer"
   storage.mode(forbEdges) <- storage.mode(stat) <- "integer"
-  aux <- .Call("minForest",dataset,varType,numCat,homog,
+  aux <- .Call("minForest",dataset,numCat,homog,
                forbEdges,stat,values,PACKAGE="gRapHD")
   tree <- aux$tree
   storage.mode(homog) <- "logical"
@@ -335,10 +350,10 @@ minForest <- function(dataset,homog=TRUE,forbEdges=NULL,stat="BIC")
                 p = p,
                 stat.minForest = switch(stat+1,"LR","BIC","AIC","User's function"),
                 statSeq = tree[,3],
-                varType = varType,
                 numCat = numCat,
                 homog = homog,
                 numP = tree[,4],
+                vertNames = result,
                 minForest = c(1,nrow(tree)))
   class(result)<-"gRapHD"
   if (dim(aux$errors)[1]!=0)
@@ -452,7 +467,7 @@ chStat <- function(model,dataset,previous=NULL,forbEdges=NULL)
           clique1 <- c(edges.to.test[i,1],S)
           clique2 <- c(edges.to.test[i,2],S)
 
-          if (sum(model$varType[clique]) == 0) # continuous
+          if (sum(model$numCat[clique]!=0) == 0) # continuous
           {
             CM <- cov(dataset[,clique],use="pairwise.complete.obs")*(nrow(dataset)-1)
             if (sum(is.na(CM))) # meaning that the new edge does not have more
@@ -474,7 +489,7 @@ chStat <- function(model,dataset,previous=NULL,forbEdges=NULL)
             }
           }
           else
-            if (sum(model$varType[clique])==length(clique)) # discrete
+            if (sum(model$numCat[clique]==0)==0) # discrete
             {
               t12 <- table(as.data.frame(dataset[,clique]))
               t1 <- margin.table(t12,match(clique1,clique))
@@ -518,11 +533,11 @@ chStat <- function(model,dataset,previous=NULL,forbEdges=NULL)
             }
             else # mixed
             {
-              discrete   <- intersect(clique,which(model$varType==1))
+              discrete   <- intersect(clique,which(model$numCat!=0))
               continuous <- setdiff(clique,discrete)
               tab <- table(as.data.frame(dataset[,discrete]))
               ssd <- diag(0,length(continuous))
-              if (sum(model$varType[edges.to.test[i,1:2]])==0) # both are continuous
+              if (sum(model$numCat[edges.to.test[i,1:2]])==0) # both are continuous
                 if (model$homog)
                 {
                   for (j in 1:length(tab))
@@ -559,7 +574,7 @@ chStat <- function(model,dataset,previous=NULL,forbEdges=NULL)
                 }
               else
               {
-                vDiscr <- (edges.to.test[i,1:2])[as.logical(model$varType[edges.to.test[i,1:2]])]
+                vDiscr <- (edges.to.test[i,1:2])[model$numCat[edges.to.test[i,1:2]]!=0]
                 vCont  <- setdiff(edges.to.test[i,1:2],vDiscr)
                 discrMarg <- setdiff(discrete,vDiscr)
                 tabMarg <- margin.table(tab,match(discrMarg,discrete))
@@ -596,18 +611,15 @@ chStat <- function(model,dataset,previous=NULL,forbEdges=NULL)
                     edges.to.test[i,5] <- model$numCat[vDiscr]-1
                   else
                   {
-                    aux <- match(vDiscr,discrete)
+                    aux <- match(vDiscr,discrete) #position of the discrete variable in the new edge (in the list of discrete variables in the edge/separator)
                     # dimension 1 in aux1 is the discrete variable in the tested edge
-                    aux1 <- table(as.data.frame(dataset[,c(vDiscr,discrete[-aux])]))
-                    aux.tab <- margin.table(aux1,2:length(discrete))
-                    aux.ind <- which(aux.tab>0,arr.ind=TRUE)
+                    aux1 <- table(as.data.frame(dataset[,c(vDiscr,discrete[-aux])])) #it's only the table with the discrete in the edge as the 1st dimension
+                    aux.tab <- margin.table(aux1,2:length(discrete)) #the marginal table without the edge's discrete
+                    aux.ind <- which(aux.tab>0,arr.ind=TRUE) #cells with at least one observation
                     numP <- 0
-                    for (iii in 1:nrow(aux.ind))
-                    {
-                      aux2 <- (1:model$numCat[vDiscr]) + sum((aux.ind[iii,]-1)*cumprod(model$numCat[discrete[-aux]]))
-                      numP <- numP + (sum(aux1[aux2]>0) - 1)
-                    }
-                    rm(aux,aux1,aux2,aux.tab,aux.ind)
+for (iii in 1:nrow(aux.ind))
+  numP <- numP + (sum(aux1[cbind(1:model$numCat[vDiscr],aux.ind[iii,])]>0) - 1)
+                    rm(aux,aux1,aux.tab,aux.ind)
                     edges.to.test[i,5] <- numP
                   }
                 }
@@ -654,11 +666,8 @@ chStat <- function(model,dataset,previous=NULL,forbEdges=NULL)
                     aux.tab <- margin.table(aux1,2:length(discrete))
                     aux.ind <- which(aux.tab>(length(continuous)+1),arr.ind=TRUE)
                     numP <- 0
-                    for (iii in 1:nrow(aux.ind))
-                    {
-                      aux2 <- (1:model$numCat[vDiscr]) + sum((aux.ind[iii,]-1)*cumprod(model$numCat[discrete[-aux]]))
-                      numP <- numP + (sum(aux1[aux2]>0) - 1)
-                    }
+for (iii in 1:nrow(aux.ind))
+  numP <- numP + (sum(aux1[cbind(1:model$numCat[vDiscr],aux.ind[iii,])]>0) - 1)
                     rm(aux,aux1,aux.tab,aux.ind)
                     edges.to.test[i,5] <- numP
                   }
@@ -696,12 +705,16 @@ stepw <- function(model,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL,
     stop("Model is not of class gRapHD.")
   else
   {
-    if (length(unique(model$varType))==2) #mixed
+    star <- NULL
+    aux <- range(model$numCat)
+    if ((aux[1]==0) & (aux[2]!=0)) #mixed
     {
+      # there are at least 2 discrete variables, which means that forbidden paths
+      # are possible to happen
       # star graph
-      perfect <- perfSets(edges=rbind(model$edges,
-                                cbind(which(model$varType==1),model$p+1)),
-                          p=model$p+1,varType=c(model$varType,1),from=0)
+      star <- cbind(which(model$numCat!=0),model$p+1)
+      perfect <- perfSets(edges=rbind(model$edges,star),
+                          p=model$p+1,varType=c(model$numCat,1),from=0)
       if (!is.list(perfect))
         stop("The model is not strongly decomposable.")
       rm(perfect)
@@ -709,6 +722,7 @@ stepw <- function(model,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL,
     else
       if (MCS(edges=model$edges,,p=model$p)[1]==0)
         stop("The model is not triangulated.")
+    rm(aux)
   }
   if (length(stat)==0)
     stop("No valid measure. Options: LR, BIC, AIC, or a user defined function.")
@@ -733,12 +747,12 @@ stepw <- function(model,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL,
 
   aux <- convData(dataset)
   dataset <- aux$ds
-  varType <- aux$varType
   numCat <- aux$numCat
-  if (!all.equal(varType,model$varType))
-    stop("model$varType doesn't agree with data.")
   if (!all.equal(numCat,model$numCat))
     stop("model$numCat doesn't agree with data.")
+  if (!identical(sort(aux$vertNames),sort(model$vertNames)))
+    stop("model$vertNames doesn't agree with data.")
+  dataset <- dataset[,match(model$vertNames,aux$vertNames)]
   rm(aux)
   if (sum(is.na(dataset))>0)
     stop("Missing values not allowed.")
@@ -764,16 +778,11 @@ stepw <- function(model,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL,
   iteration <- 0
   ch <- initial
   SS <- NULL
-  # there are at least 2 discrete variables, which means that forbidden paths
-  # are possible to happen
-  star <- NULL
-  if (length(unique(model$varType))==2)
-    star <- cbind(which(model$varType==1),p+1)
 
   while ((!STOP))
   {
     iteration <- iteration + 1
-    ch <- findEd(model$edges,p,ch,model$varType,0,exact,join)
+    ch <- findEd(model$edges,p,ch,model$numCat,0,exact,join)
     if (stat!="USER")
       ch <- chStat(model,dataset,ch,forbEdges)
     else
@@ -786,38 +795,45 @@ stepw <- function(model,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL,
                            collapse=""),iteration,".RData",sep="")
       save(ch,model,file=fileN)
     }
-    if (nrow(change) == 0) # here is no more edge possible to test
+    if (nrow(change) == 0) # there is no more edges possible to test
       STOP <- TRUE
     else
     {
       continue <- TRUE
-      # before adding the edge, it has to be tested if it generates a cycle
+      add <- FALSE
+      # before adding one the edge, it has to test if it generates a cycle
+      df <- change[,5]
+      df[df<=0] <- NA
+      statValues <- change[,4] + ((stat=="BIC")*df+(stat=="AIC")*2)*log(n)
+      rm(df)
+      ind <- order(statValues)
+      i <- 0
       while (continue)
       {
-        # the edge which reduces the LR the most
-        aux <- which.min(change[,4]+
-                         ((stat=="BIC")*change[,5]+(stat=="AIC")*2)*log(n))
-        value <- change[aux,4]+
-                 ((stat=="BIC")*change[aux,5]+(stat=="AIC")*2)*log(n)
-        if ((value < threshold) & (exact))
+        # the edge which reduces the most (the stat)
+        i <- i+1
+        aux <- ind[i]
+        value <- statValues[aux]
+        if (is.na(value))
           continue <- FALSE
         else
-          if (value < threshold)
+          if ((value < threshold) & (exact))
           {
-            # Lauritzen (1996, pg 11): Proposition 2.6 (Leimer) - An undirected,
-            # marked graph G is decomposable if and only if G* is triangulated.
-            continue <- (MCS(edges=rbind(model$edges,change[aux,1:2],star),v=1,p=p+!is.null(star)))[1] == 0
-            if (continue)
-              change[aux,4] <- threshold # as it is "threshold", will not be choosed again in this
-                                 # iteration, but can still be considered in a
-                                 # next iteration
+            continue <- FALSE
+            add <- TRUE
           }
           else
-            continue <- FALSE
+            if (value < threshold)
+            {
+              # Lauritzen (1996, pg 11): Proposition 2.6 (Leimer) - An undirected,
+              # marked graph G is decomposable if and only if G* is triangulated.
+              continue <- (MCS(edges=rbind(model$edges,change[aux,1:2],star),v=1,p=p+!is.null(star)))[1] == 0
+              add <- !continue #statValues[aux] <- !continue*statValues[aux] + continue*threshold
+            }
+            else
+              continue <- FALSE
       }
-      value <- change[aux,4]+
-               ((stat=="BIC")*change[aux,5]+(stat=="AIC")*2)*log(n)
-      if (value < threshold) # it improves the model
+      if (add) # it improves the model
       {
         model$edges <- rbind(model$edges,change[aux,1:2])
         model$numP <- c(model$numP,change[aux,5])
@@ -826,7 +842,6 @@ stepw <- function(model,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL,
       else
         STOP <- TRUE
     }
-    ch$edges.to.test <- change
   }
   if (edges.stepw<=nrow(model$edges))
     model$stepw <- c(edges.stepw,nrow(model$edges))
@@ -852,11 +867,15 @@ neighbours <- function(model=NULL,edges=NULL,v)
     if (class(model)!="gRapHD")
       stop("Model must be of class gRapHD.")
     edges <- model$edges
+    p <- model$p    
   }
   else
     if (NROW(edges)==0 || NCOL(edges)!=2)
       stop("No edges.")
-
+    else
+      p <- max(edges)
+  if (v > p)
+    stop(paste("v must be in [1,",p,"].",sep=""))  
   fn <- integer(0)
   edges <- matrix(edges,ncol=2)
   ind <- as.matrix(which(rbind(edges,c(0,0))==v,arr.ind=TRUE)) # edges in "v"
@@ -895,7 +914,7 @@ neighbours <- function(model=NULL,edges=NULL,v)
 # Out: list: edges = matrix w1 by 4 (same structure as edges.to.test)
 #            S: list with the minimal separators
 ################################################################################
-findEd <- function(edges,p,previous=NULL,varType,from=0,exact=FALSE,join=FALSE)
+findEd <- function(edges,p,previous=NULL,numCat,from=0,exact=FALSE,join=FALSE)
 {
   if (from > p)
     stop("from > p!!")
@@ -914,11 +933,11 @@ findEd <- function(edges,p,previous=NULL,varType,from=0,exact=FALSE,join=FALSE)
   v2 <- edges[,2]
   storage.mode(v1) <- storage.mode(v2) <- "integer"
   storage.mode(p) <- storage.mode(prev) <- "integer"
-  storage.mode(varType) <- "integer"
+  storage.mode(numCat) <- "integer"
   storage.mode(exact) <- storage.mode(from) <- "integer"
   storage.mode(join) <- "integer"
 
-  result <- .Call("findEd", v1, v2, p, prev, varType,
+  result <- .Call("findEd", v1, v2, p, prev, numCat,
                   from, exact, join,PACKAGE="gRapHD")
 
   i <- result$total
@@ -968,6 +987,8 @@ perfSets <- function(model=NULL,edges=NULL,p=NULL,varType=0,from=0)
       stop("Model must be of class gRapHD.")
     edges <- model$edges
     p <- model$p
+    varType <- model$numCat
+    varType[varType!=0] <- 1
   }
   if ((NROW(edges)==0) && is.null(p))
     stop("p must not be NULL.")
@@ -978,11 +999,15 @@ perfSets <- function(model=NULL,edges=NULL,p=NULL,varType=0,from=0)
   from <- max(c(0,from))
   if (is.null(edges))
     edges <- matrix(integer(0),,2)
-  if (sum(varType)==0)
-    varType <- rep(0,p) #all continuous variables
+
+  if (!is.element(length(varType),c(1,p)))
+    stop("varType must be 0, 1, or lenght(varType)==p.")
+
+  if (length(varType)==1)
+    varType <- rep(as.integer(varType!=0),p)
   else
-    if ((sum(varType)/length(varType))==1) # all variables are discrete
-      varType <- rep(1,p)
+    varType[varType!=0] <- 1
+
   if (nrow(edges) > 0)
     if (max(edges)>p)
       stop("There are more vertices in edges than p.")
@@ -1051,7 +1076,6 @@ calcStat <- function(dataset,homog=TRUE,forbEdges=NULL,stat="LR")
 
   aux <- convData(dataset)
   dataset <- aux$ds
-  varType <- aux$varType
   numCat <- aux$numCat
   rm(aux)
   if (sum(is.na(dataset))>0)
@@ -1080,17 +1104,16 @@ calcStat <- function(dataset,homog=TRUE,forbEdges=NULL,stat="LR")
       {
         x <- (i-1)*p-(i-1)*i/2 + j-i
         if (!is.element(x,forbEdges))
-          values <- rbind(values,FUN(c(i,j),varType,numCat,dataset))
+          values <- rbind(values,FUN(c(i,j),numCat,dataset))
         else
           values <- rbind(values,NA)
       }
   }
 
   storage.mode(values) <- storage.mode(dataset) <- "double"
-  storage.mode(varType) <- "integer"
   storage.mode(numCat) <- storage.mode(homog) <- "integer"
   storage.mode(forbEdges) <- storage.mode(stat) <- "integer"
-  stat <- .Call("calcStat",dataset,varType,numCat,homog,
+  stat <- .Call("calcStat",dataset,numCat,homog,
                 forbEdges,stat,values,PACKAGE="gRapHD")
   if (dim(stat$errors)[1]!=0)
     warning("Check $errors for edges with problems.", call. = FALSE)
@@ -1099,6 +1122,8 @@ calcStat <- function(dataset,homog=TRUE,forbEdges=NULL,stat="LR")
 ################################################################################
 
 ################################################################################
+# WARNING: maintained only for compatibility. Use instead plot.gRapHD
+#
 # Plot the graph using Fruchterman-Reingold algorithm.
 # Fruchterman, T. M. J., & Reingold, E. M. (1991). Graph Drawing by
 # Force-Directed Placement. Software: Practice and Experience, 21(11).
@@ -1141,6 +1166,7 @@ plotG <- function(model=NULL,edges=NULL,v=NULL,numIter=50,main=NULL,tcex=1,
                   sb=1,lcex=.40,vlabs=NULL,asp=NA,disp=TRUE,font=1)
 
 {
+  warning("Function mantained only for compatibility. Use instead plot.gRapHD")
   if (!is.null(edges))
   {
     if (!is.null(model))
@@ -1154,7 +1180,9 @@ plotG <- function(model=NULL,edges=NULL,v=NULL,numIter=50,main=NULL,tcex=1,
       if (length(v)!=length(unique(v)))
         stop("There are repeated vertices in v.")
       vertices <- v
-      edges <- SubGraph(edges=edges,v=vertices)$edges
+      edges <- SubGraph(edges=edges,v=vertices,p=max(edges))$edges
+      edges[,1] <- vertices[edges[,1]]
+      edges[,2] <- vertices[edges[,2]]
     }
     originalOrder <- order(vertices)
     vertices <- sort(vertices)
@@ -1166,7 +1194,7 @@ plotG <- function(model=NULL,edges=NULL,v=NULL,numIter=50,main=NULL,tcex=1,
     if (is.null(model))
       stop("Model or edges should be provided.")
     edges <- model$edges
-    varType <- model$varType
+    varType <- model$numCat
     p <- model$p
     originalOrder <- 1:p
     if (is.null(v))
@@ -1179,7 +1207,7 @@ plotG <- function(model=NULL,edges=NULL,v=NULL,numIter=50,main=NULL,tcex=1,
         stop("There are repeated vertices in v.")
       originalOrder <- order(v)
       vertices <- sort(v)
-      edges <- SubGraph(edges=edges,v=vertices)$edges
+      edges <- SubGraph(edges=edges,v=vertices,p=p)$edges
     }
     p <- length(vertices)
   }
@@ -1274,7 +1302,7 @@ plotG <- function(model=NULL,edges=NULL,v=NULL,numIter=50,main=NULL,tcex=1,
   {
     plot.new()
     par(mar=c(0,0,1.5*!is.null(main),0),oma=c(0,0,0,0))
-    plot.window(c(0,1), c(0,1))
+    plot.window(c(0,1), c(0,1), asp=asp)
     coordE <- matrix(0,nrow(edges),4)
     if (length(edgesL)>0)
       for (i in 1:nrow(edgesL))
@@ -1293,7 +1321,7 @@ plotG <- function(model=NULL,edges=NULL,v=NULL,numIter=50,main=NULL,tcex=1,
       vs <- vs[originalOrder]
       vlcol <- vlcol[originalOrder]
       Fill <- rep("lightgray",length(varType))
-      Fill[varType==1] <- "black"
+      Fill[varType!=0] <- "black"
       Fill[hlv] <- hlc
       Fill <- Fill[vertices]
       for (j in 1:nrow(coordV))
@@ -1338,6 +1366,226 @@ plotG <- function(model=NULL,edges=NULL,v=NULL,numIter=50,main=NULL,tcex=1,
 }
 ################################################################################
 
+
+################################################################################
+# Plot the graph using Fruchterman-Reingold algorithm.
+# Fruchterman, T. M. J., & Reingold, E. M. (1991). Graph Drawing by
+# Force-Directed Placement. Software: Practice and Experience, 21(11).
+# In: x = gRapHD object
+#     vert = list of vertices to be plotted
+#     numIter = number of iterations for Fruchterman-Reingold algorithm
+#     main = main title
+#     plotVert = T or F (add the vertices)
+#     labelVert = T or F (add the vertices labels)
+#     energy = T or F (use the minimum energy as initial values)
+#     useWeights = T or F (use the model$statSeq as edges lenght weights)
+#     vert.hl = list of vertices to highlight
+#     col.hl = colour to be used in the highlighted vertices
+#     vert.radii = radii of the edges (scalar or vector with length p)
+#     coord = matrix (number of vertices by 2) with initial coordenates
+#     col.ed = colour of the edges
+#     lty.ed = type of line to be used for the edges
+#     lwd.ed = width of the edges
+#     lwd.vert = width of the vertices' border
+#     border = colour of the vertices borders (length 1 or number of vertices)
+#     symbol.vert = symbol to be used in the vertices (length 1 or number of
+#          vertices) 1 is a circle, 2 a square, 3 or higher represents the
+#          number of sides
+#     cex.vert.label  = numeric character expansion factor for the labels;
+#            multiplied by par yields the final character size. NULL and NA are
+#            equivalent to 1.0.
+#     vert.labels = labels to be used in the vertices.
+#     asp = the aspect ratio y/x (see plot.window for more details).
+#     disp = plot (TRUE) or not (FALSE)
+#
+# Out: matrix (2xp) with the coordinates of the vertices
+################################################################################
+plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
+                        plotVert=TRUE,labelVert=TRUE,energy=FALSE,
+                        useWeights=FALSE,vert.hl=NULL,col.hl="red",
+                        vert.radii=0.01,coord=NULL,col.ed="darkgray",lty.ed=1,
+                        lwd.ed=1,lwd.vert=1,border=0,symbol.vert=1,
+                        cex.vert.label=.40,vert.labels=NULL,asp=NA,disp=TRUE,
+                        font=par("font"),...)
+{
+  model <- x
+  rm(x)
+  edges <- model$edges
+  varType <- model$numCat
+  p <- model$p
+  originalOrder <- 1:p
+  if (is.null(vert))
+    vertices <- 1:p
+  else
+  {
+    if ((max(vert) > p) || (min(vert) < 1))
+      stop("vert has vertices that are not in the model.")
+    if (length(vert)!=length(unique(vert)))
+      stop("There are repeated vertices in vert.")
+    originalOrder <- order(vert)
+    vertices <- sort(vert)
+    edges <- SubGraph(edges=edges,v=vertices,p=max(edges))$edges
+    edges[,1] <- vertices[edges[,1]]
+    edges[,2] <- vertices[edges[,2]]
+  }
+  p <- length(vertices)
+
+  # vertices radii
+  if (length(vert.radii)>1)
+  {
+    if (length(vert.radii)!=p)
+      stop("The vector with vertices radii must have length 1 or p.")
+  }
+  else
+    vert.radii <- rep(vert.radii,p)
+  # test if all vertices to be highlighted are in the graph
+  if (sum(is.element(vert.hl,vertices))<length(vert.hl))
+     stop("Only vertices plotted can be highlighted.")
+  # colour of vertices' borders
+  if (length(border)==1)
+    border <- rep(border,p)
+  else
+    if (length(border)!=p)
+       stop("border must have length 1 or p.")
+  # shape of the vertices
+  if (length(symbol.vert)==1)
+    symbol.vert <- rep(symbol.vert,p)
+  else
+    if (length(symbol.vert)!=p)
+       stop("symbol.vert must have length 1 or p.")
+
+  # initialise vertices' coordenates
+  if (!is.null(coord)) # if it is given by the user
+  {
+    if (NROW(coord)!=length(vertices))
+      stop("coord must have the same number of rows as vertices.")
+    w <- p^2/4
+    coord <- w*(2*coord-1) # the algorithm uses the graph centered in (0,0)
+  }
+  else
+    if (!energy) # or using a lattice
+    {
+      w <- floor(sqrt(p))
+      x <- seq(from=-p^2/4,to=p^2/4,by=(2*p^2/4)/w)
+      y <- seq(from=p^2/4,to=-p^2/4,by=-(2*p^2/4)/w)
+      x <- matrix(rep(x,w+1),nrow=w+1,byrow=T)
+      y <- matrix(rep(y,w+1),nrow=w+1)
+      x <- t(x)
+      y <- t(y)
+      coord <- cbind(as.vector(x),as.vector(y))
+      coord <- coord[1:p,]
+    }
+    else # using minimum energy
+    {
+      if (!useWeights)
+      {
+        A <- adjMat(edges=edges, p=p)
+        Q <- -A
+        diag(Q) <- rowSums(A)
+      }
+      else
+      {
+        A <- matrix(0,p,nrow(edges))
+        A[cbind(edges[,1],1:nrow(edges))] <- -1
+        A[cbind(edges[,2],1:nrow(edges))] <- 1
+        Q <- A%*%diag(1/abs(model$statSeq))%*%t(A)
+      }
+      tt <- eigen(Q, symmetric=T)
+      v1 <- tt$vectors[ ,p]
+      v2 <- tt$vectors[ ,p-1]
+      v3 <- tt$vectors[ ,p-2]
+      u1 <- v1
+      u2 <- v2 - sum(v2*u1)*u1
+      u3 <- v3 - sum(v3*u1)*u1 - sum(v3*u2)*u2
+      coord <- cbind(u3,u2)+cbind(1:p,1:p)/(1000*p)
+    }
+  aux <- rep(0,max(vertices))
+  aux[vertices] <- 1:length(vertices)
+  edgesL <- cbind(aux[edges[,1]],aux[edges[,2]])
+  storage.mode(p) <- "integer"
+  storage.mode(edgesL) <- "integer"
+  storage.mode(numIter) <- "integer"
+  storage.mode(coord) <- "double"
+  coordV <- .Call("frucRein",edgesL,p,numIter,coord,PACKAGE="gRapHD")
+  # rescale coordenates resulting from frucRein
+  if (p > 1)
+  {
+    coordV[,1] <- ((coordV[,1]-min(coordV[,1]))/max(coordV[,1]-min(coordV[,1])))
+    coordV[,2] <- ((coordV[,2]-min(coordV[,2]))/max(coordV[,2]-min(coordV[,2])))
+    coordV[is.na(coordV)] <- .5
+  }
+  else
+    coordV[1,] <- c(.5,.5*.9)
+
+  if (disp) # if it is to be plotted
+  {
+    if (is.null(main)) main <- ""
+    plot.new()
+    par(mar=c(0,0,1.5*(main!=""),0),oma=c(0,0,0,0))
+    plot.window(c(0,1), c(0,1), asp=asp)
+    coordE <- matrix(0,nrow(edges),4)
+    if (length(edgesL)>0)
+      for (i in 1:nrow(edgesL))
+      {
+        coordE[i,1:2] <- c(coordV[edgesL[i,1],1],coordV[edgesL[i,2],1])
+        coordE[i,3:4] <- c(coordV[edgesL[i,1],2],coordV[edgesL[i,2],2])
+        lines(x=coordE[i,1:2],
+              y=coordE[i,3:4],
+              col=col.ed,lty=lty.ed,lwd=lwd.ed)#col="darkgray",lty=1,lwd=1)
+      }
+
+    if (plotVert)
+    {
+      xy <- list(x=cos(seq(0,2*pi,2*pi/25)),y=sin(seq(0,2*pi,2*pi/25)))
+      symbol.vert <- symbol.vert[originalOrder]
+      vert.radii <- vert.radii[originalOrder]
+      border <- border[originalOrder]
+      Fill <- rep("lightgray",length(varType))
+      Fill[varType!=0] <- "black"
+      Fill[vert.hl] <- col.hl
+      Fill <- Fill[vertices]
+      for (j in 1:nrow(coordV))
+      {
+        if (symbol.vert[j]==0)
+          polygon(xy$x*vert.radii[j]*2+coordV[j,1],xy$y*vert.radii[j]+coordV[j,2],border=border[j],col=Fill[j],lwd=lwd.vert)
+        else
+          if (symbol.vert[j]==1)
+            symbols(x=coordV[j,1],y=coordV[j,2],circles=vert.radii[j],inches=FALSE,add=TRUE,bg=Fill[j],
+                    fg=border[j],lwd=lwd.vert)
+          else
+            if (symbol.vert[j]==2)
+              symbols(x=coordV[j,1],y=coordV[j,2],squares=vert.radii[j],inches=FALSE,add=TRUE,bg=Fill[j],
+                      fg=border[j],lwd=lwd.vert)
+            else
+              if (symbol.vert[j]>=3)
+              {
+                z1 <- rep(vert.radii[j],symbol.vert[j])
+                dim(z1) <- c(1,symbol.vert[j])
+                symbols(x=coordV[j,1],y=coordV[j,2],stars=z1,inches=FALSE,add=TRUE,bg=Fill[j],
+                        fg=border[j],lwd=lwd.vert)
+              }
+      }
+    }
+    if (labelVert)
+    {
+      Fill <- rep("white",length(varType))
+      Fill[varType==0] <- "black"
+      Fill <- Fill[vertices]
+
+      if (!is.null(vert.labels))
+        text(x=coordV[,1],y=coordV[,2],vert.labels,cex=cex.vert.label,col=Fill,font=font)
+      else
+        text(x=coordV[,1],y=coordV[,2],model$vertNames[vertices],cex=cex.vert.label,col=Fill,font=font)
+    }
+
+    if (!is.null(main))
+      title(main=main)
+  }
+
+  invisible(coordV)
+}
+################################################################################
+
 ################################################################################
 # Find the sub-graph with all vertices with less or equal distance from a
 # central vertex.
@@ -1360,10 +1608,16 @@ neighbourhood <- function(model=NULL,edges=NULL,orig=NULL,rad=1)
     if (class(model)!="gRapHD")
       stop("Model must be of class gRapHD.")
     edges <- model$edges
+    p <- model$p
   }
+  p <- 0
   if (NROW(edges)==0)
     return(list(edges=matrix(integer(0),,2),v=matrix(c(orig,0),,2)))
+  else
+    p <- max(p,max(edges))
     
+  if (orig > p)
+    stop(paste("orig must be in [1,",p,"].",sep=""))
   if (rad < 1)
     vertices <- orig
   else
@@ -1377,15 +1631,23 @@ neighbourhood <- function(model=NULL,edges=NULL,orig=NULL,rad=1)
         for (i in 1:length(vertices[[j-1]]))
           vertices[[j]] <- c(vertices[[j]],neighbours(edges=edges,v=vertices[[j-1]][i]))
         vertices[[j]] <- unique(setdiff(vertices[[j]],c(orig,unlist(vertices[1:(j-1)]))))
+        if (length(vertices[[j]])==0)
+        {
+          vertices[[j]] <- NULL
+          break
+        }
       }
   }
   v <- c(orig,0)
-  for (i in 1:rad)
+  for (i in 1:length(vertices))
     if (length(vertices[[i]])>0)
       v <- rbind(v,cbind(vertices[[i]],i))
   colnames(v) <- c("vertex","rad")
   rownames(v) <- NULL
-  subEdges <- SubGraph(edges=edges,v=unique(v[,1]))$edges
+  V <- sort(unique(v[,1]))
+  subEdges <- SubGraph(edges=edges,v=V,p=p)$edges
+  subEdges[,1] <- V[subEdges[,1]]
+  subEdges[,2] <- V[subEdges[,2]]
   return(list(edges=subEdges,v=v))
 }
 ################################################################################
@@ -1437,18 +1699,18 @@ Degree <- function(model=NULL,edges=NULL,v=NULL)
     else
     {
       p <- model$p
-      if (!is.null(v))
-        if (max(v) > p)
-          stop("v has vertices not in the graph.")
       edges <- model$edges
     }
   else
     p <- max(c(max(edges),v))
-    
-  aux <- sort(as.vector(edges))
+
   if (is.null(v))
     v <- 1:p
-
+  else
+    if (max(v)>p)
+      stop(paste("v must be in [1,",p,"].",sep=""))
+    
+  aux <- sort(as.vector(edges))
   aux <- table(aux)
   result <- rep(0,length(v))
   names(result) <- v
@@ -1477,9 +1739,6 @@ shortPath <- function(model=NULL, edges=NULL, v=NULL, p=NULL)
     else
     {
       p <- model$p
-      if (!is.null(v))
-        if (max(v) > p)
-          stop("v has vertices not in the graph.")
       edges <- model$edges
     }
   else
@@ -1491,6 +1750,8 @@ shortPath <- function(model=NULL, edges=NULL, v=NULL, p=NULL)
   storage.mode(v1) <- storage.mode(v2) <- storage.mode(p) <- "integer"
   if (!is.null(v))
   {
+    if (max(v)>p)
+      stop(paste("v must be in [1,",p,"].",sep=""))
     storage.mode(v) <- "integer"
     result <- .Call("shortPath",v1,v2,v,p,PACKAGE="gRapHD")
     names(result) <- 1:p
@@ -1513,22 +1774,20 @@ shortPath <- function(model=NULL, edges=NULL, v=NULL, p=NULL)
 # Converts the dataset to numeric format
 # In: dataset = matrix (numeric) or data frame.
 # Out: list = ds (matrix)
-#             varType (vector with 0 (continuous) and 1 (discrete))
+#             vertNames (vertices' names)
 #             numCat (number of levels in each variable/column)
 ################################################################################
 convData <- function(dataset)
 {
+  vertNames <- colnames(dataset)
   if (mode(dataset)=="numeric")
   {
-    dsC <- dataset
-    dim(dsC) <- c(NROW(dataset),NCOL(dataset))
-    varType <- rep(0,ncol(dsC))
-    numCat <- rep(0,ncol(dsC))
+    dim(dataset) <- c(NROW(dataset),NCOL(dataset))
+    numCat <- rep(0,ncol(dataset))
   }
   else
     if (is.data.frame(dataset))
     {
-      varType <- rep(0,ncol(dataset))
       numCat <- rep(0,ncol(dataset))
       dsC <- NULL
       for (i in 1:ncol(dataset))
@@ -1537,7 +1796,6 @@ convData <- function(dataset)
           dsC <- cbind(dsC,dataset[,i])
         else
         {
-          varType[i] <- 1
           if (is.factor(dataset[,i]))
           {
             dsC <- cbind(dsC,as.numeric(dataset[,i]))
@@ -1553,10 +1811,13 @@ convData <- function(dataset)
               stop(paste("Column ",i," is not double, integer, factor or logic.",sep=""))
         }
       }
+      dataset <- dsC
     }
     else
       stop("Input not numeric nor data frame.")
-  return(list(ds=dsC,varType=varType,numCat=numCat))
+  if (is.null(vertNames))
+    vertNames <- 1:ncol(dataset)
+  return(list(ds=dataset,numCat=numCat,vertNames=vertNames))
 }
 ################################################################################
 
@@ -1585,12 +1846,21 @@ fit <- function(model=NULL,edges=NULL,dataset,homog=TRUE)
 
   aux <- convData(dataset)
   dataset <- aux$ds
-  varType <- aux$varType
+  varType <- aux$numCat
+  varType[varType!=0] <- 1
   numCat <- aux$numCat
   p <- length(numCat)
   n <- nrow(dataset)
   if (sum(is.na(dataset))>0)
     stop("Missing values not allowed.")
+  if (!is.null(model))
+  {
+    if (!all.equal(numCat,model$numCat))
+      stop("model$numCat doesn't agree with data.")
+    if (!identical(sort(aux$vertNames),sort(model$vertNames)))
+      stop("model$vertNames doesn't agree with data.")
+    dataset <- dataset[,match(model$vertNames,aux$vertNames)]
+  }
 
   if (length(unique(varType))==1) #all discrete or all continuous
     perfect <- perfSets(edges=edges,p=p,varType=varType,from=0)
@@ -1777,7 +2047,7 @@ summary.gRapHD <- function(object,...)
   cat(paste("Number of edges       = ",nrow(object$edges),"\n",sep=""))
   cat(paste("Number of vertices    = ",object$p,"\n",sep=""))
   p <- max(c(1,object$p))
-  aux <- ifelse(sum(object$varType)/p==0,"continuous",ifelse(sum(object$varType)/p==1,"discrete","mixed"))
+  aux <- ifelse(sum(object$numCat)==0,"continuous",ifelse(sum(object$numCat!=0)/p==1,"discrete","mixed"))
   aux1 <- ifelse(aux=="mixed",paste(" and ",ifelse(object$homog,"homogeneous","heterogeneous"),sep=""),"")
   cat(paste("Model                 = ",aux,aux1," \n",sep=""))
   if (!is.null(object$stat.minForest))
@@ -1811,11 +2081,7 @@ modelFormula <- function(model)
   psSub <- function(edges,p,v,varType)
   {
     n <- length(v)
-    original <- rep(0,p)
-    original[v] <- 1:n
-    edgesV <- SubGraph(edges=edges,v=v)$edges
-    edgesV[,1] <- original[edgesV[,1]]
-    edgesV[,2] <- original[edgesV[,2]]
+    edgesV <- SubGraph(edges=edges,v=v,p=model$p)$edges
     pSeq <- perfSets(edges=edgesV,p=n,varType=varType,from=0)
     for (i in 1:length(pSeq$cliques))
       pSeq$cliques[[i]] <- v[pSeq$cliques[[i]]]
@@ -1823,7 +2089,8 @@ modelFormula <- function(model)
   }
 
   edges <- model$edges
-  varType <- model$varType
+  varType <- model$numCat
+  varType[varType!=0] <- 1
   p <- model$p
 
   discr <- which(varType==1)
@@ -1831,10 +2098,8 @@ modelFormula <- function(model)
   discrete <- list()
   # find all d terms
   if (nDiscr>0)
-  {
-    pSeq <- psSub(edges,p,discr,varType)
-    discrete <- pSeq
-  }
+    discrete <- psSub(edges,p,discr,varType[discr])
+
   ind <- cbind(varType[edges[,1]],varType[edges[,2]])
   # using this cont, only those continuous that have at least one edge with
   # a discrete are considered
@@ -2058,10 +2323,16 @@ as.gRapHD <- function(object,...)
   result$p <- ifelse(!is.null(arg$p),as.integer(arg$p),as.integer(p))
   result$stat.user <- ifelse(!is.null(arg$stat),as.character(arg$stat),"LR")
   result$statSeq <- if(!is.null(arg$statSeq)) as.numeric(arg$statSeq) else as.numeric(rep(NA,nrow(result$edges)))
-  result$varType <- if(!is.null(arg$varType)) as.integer(arg$varType) else integer(result$p)
   result$numCat <- if(!is.null(arg$numCat)) as.integer(arg$numCat) else integer(result$p)
   result$homog <- ifelse(!is.null(arg$homog),as.logical(arg$homog),TRUE)
   result$numP <- if(!is.null(arg$numP)) as.numeric(arg$numP) else as.numeric(rep(NA,nrow(result$edges)))
+  if (!is.null(arg$vertNames))
+    result$vertNames <- arg$vertNames
+  else
+    if (result$p == 0)
+      result$vertNames <- NA
+    else
+      result$vertNames <- 1:result$p
   result$userDef <- c(n,nrow(result$edges))
   class(result)<-"gRapHD"
   return(result)
@@ -2109,7 +2380,8 @@ jTree <- function(model)
   v1 <- model$edges[,1]
   v2 <- model$edges[,2]
   p <- model$p
-  varType <- model$varType
+  varType <- model$numCat
+  varType[varType!=0] <- 1
   storage.mode(v1) <- storage.mode(v2) <- "integer"
   storage.mode(p) <- "integer"
   storage.mode(varType) <- "integer"
@@ -2198,7 +2470,6 @@ CI.test <- function(x,y,S,dataset,homog=TRUE)
   }
 
   dataset <- convData(dataset)
-  varType <- dataset$varType
   numCat <- dataset$numCat
   dataset <- dataset$ds
   if (sum(is.na(dataset))>0)
@@ -2211,7 +2482,7 @@ CI.test <- function(x,y,S,dataset,homog=TRUE)
   clique1 <- c(edge[1],S)
   clique2 <- c(edge[2],S)
 
-  if (sum(varType[clique]) == 0) # continuous
+  if (sum(numCat[clique]) == 0) # continuous
   {
     CM <- cov(dataset[,clique],use="pairwise.complete.obs")*(n-1)
     if (sum(is.na(CM))) # meaning that the new edge does not have more than 1 observation (not NA)
@@ -2227,7 +2498,7 @@ CI.test <- function(x,y,S,dataset,homog=TRUE)
     }
   }
   else
-    if (sum(varType[clique])==length(clique)) # discrete
+    if (sum(numCat[clique]!=0)==length(clique)) # discrete
     {
       t12 <- table(as.data.frame(dataset[,clique]))
       t1 <- margin.table(t12,match(clique1,clique))
@@ -2254,11 +2525,11 @@ CI.test <- function(x,y,S,dataset,homog=TRUE)
     }
     else # mixed
     {
-      discrete   <- intersect(clique,which(varType==1))
+      discrete   <- intersect(clique,which(numCat!=1))
       continuous <- setdiff(clique,discrete)
       tab <- table(as.data.frame(dataset[,discrete]))
       ssd <- diag(0,length(continuous))
-      if (sum(varType[edge])==0) # both are continuous
+      if (sum(numCat[edge])==0) # both are continuous
         if (homog)
         {
           for (j in 1:length(tab))
@@ -2294,7 +2565,7 @@ CI.test <- function(x,y,S,dataset,homog=TRUE)
         }
       else
       {
-        vDiscr <- (edge)[as.logical(varType[edge])]
+        vDiscr <- edge[numCat[edge]!=0]
         vCont  <- setdiff(edge,vDiscr)
         discrMarg <- setdiff(discrete,vDiscr)
         tabMarg <- margin.table(tab,match(discrMarg,discrete))

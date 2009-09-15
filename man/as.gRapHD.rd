@@ -19,8 +19,7 @@
   \code{p} - number of variables (vertices) in the model.\cr
   \code{stat} - measure used (LR, AIC, or BIC).\cr
   \code{statSeq} - vector with \code{-2(log-likelihood)} for each edge.\cr
-  \code{varType} - vector indicating the type of each variable: 0 if continuous,
-                 or 1 if discrete.\cr
+  \code{vertNames} - vector with the original vertices' names.\cr
   \code{numCat} - vector with number of levels for each variable (0 if continuous).\cr
   \code{homog} - \code{TRUE} if the covariance is homogeneous.\cr
   \code{numP} - vector with number of estimated parameters for each edge.\cr
