@@ -279,7 +279,7 @@ DFS <- function(model=NULL,edges=NULL, v, p=NULL)
 #             homog (boolean - if the covariance is homogeneous)
 #             numP (vector, number of parameters in each edge)
 ################################################################################
-minForest <- function(dataset,homog=TRUE,forbEdges=NULL,stat="BIC",...)
+minForest <- function(dataset,homog=TRUE,forbEdges=NULL,stat="BIC",cond=NULL,...)
 {
   if (length(stat)==0)
     stop("No valid measure. Options: LR, BIC, AIC, or a user defined function.")
@@ -297,11 +297,94 @@ minForest <- function(dataset,homog=TRUE,forbEdges=NULL,stat="BIC",...)
       stop("No valid measure. Options: LR, BIC, AIC, or a user defined function.")
   }
 
+  gClique <- function(v)
+  {
+    v <- sort(unique(v))
+    x <- function(v,y)
+    {
+      if (v<y)
+        return(cbind(v,(v+1):y))
+      else
+        return(NULL)
+    }
+    n <- length(v)
+    aux <- sapply(1:n,x,y=n)
+    edges <- NULL
+    for (i in 1:length(aux))
+      edges <- rbind(edges,matrix(v[aux[[i]]],,2))
+    return(edges)
+  }
+
   p <- ncol(dataset)
   n <- nrow(dataset)
+  statS <- stat
+  aux <- convData(dataset)
+  dataset <- aux$ds
+  numCat <- aux$numCat
+  result <- aux$vertNames
+  rm(aux)
+
+  if (sum(is.na(dataset))>0)
+    stop("Missing values not allowed.")
+
   if (is.null(forbEdges))
     forbEdges <- 0
+
+###################################
+  condEdges <- NULL
+  compType <- varType <- as.integer(numCat!=0)
+  if (is.null(cond))
+    comp <- 1:p
   else
+  {
+    k <- length(cond) #number of conditional sets
+    ed <- matrix(integer(0),,2)
+    if (k > 1)
+    {
+      inter <- matrix(0,k,k) #matrix giving which sets are not disjoint
+      for (i in 1:(k-1))
+        for (j in (i+1):k)
+          inter[i,j] <- length(intersect(cond[[i]],cond[[j]]))>0
+      ed <- which(inter==1,arr.ind=T) #edges of a graph in which the nodes are de sets
+    }
+    if (nrow(ed) == 0)
+      condJ <- cond
+    else
+    {
+      compJ <- rep(0,k) #indicates which sets are in the same connected component in ed
+      i <- 1
+      while (min(compJ)==0)
+      {
+        aux <- DFS(edges=ed,v=i,p=k) #all nodes reachable from i
+        if (compJ[i] == 0)
+          compJ[c(i,aux)] <- max(compJ)+1
+        i <- i + 1
+      }
+      condJ <- list() #the list of nodes in the original graph that are in the same connected component
+      for (i in 1:max(compJ))
+        condJ[[i]] <- sort(unique(unlist(cond[which(compJ==i)])))
+      #  forbEdges <- rbind(forbEdges,gClique(unlist(cond[which(compJ==i)])))
+    }
+
+    comp <- rep(0,p)
+    for (i in 1:length(condJ))
+    {
+      comp[condJ[[i]]] <- max(comp)+1
+      x <- unique(varType[condJ[[i]]])
+      compType[condJ[[i]]] <- ifelse(length(x)==1,x,2)
+      forbEdges <- rbind(forbEdges,gClique(condJ[[i]]))
+    }
+    for (i in 1:length(cond))
+      condEdges <- rbind(condEdges,gClique(cond[[i]]))
+    condEdges <- unique(condEdges,MARGIN=1)
+    ind <- which(comp==0)
+    if (length(ind)>0)
+    {
+      comp[ind] <- max(comp) + (1:length(ind))
+    }
+  }
+###################################
+  if (forbEdges[1] != 0)
   {
     forbEdges <- matrix(forbEdges,,2)
     X <- function(x){sort(x)}
@@ -324,33 +407,37 @@ minForest <- function(dataset,homog=TRUE,forbEdges=NULL,stat="BIC",...)
       }
   }
 
-  statS <- stat
-  aux <- convData(dataset)
-  dataset <- aux$ds
-  numCat <- aux$numCat
-  result <- aux$vertNames
-  rm(aux)
-
-  if (sum(is.na(dataset))>0)
-    stop("Missing values not allowed.")
-
   storage.mode(values) <- storage.mode(dataset) <- "double"
   storage.mode(numCat) <- storage.mode(homog) <- "integer"
   storage.mode(forbEdges) <- storage.mode(stat) <- "integer"
+  storage.mode(comp) <- storage.mode(compType) <- "integer"
   aux <- .Call("minForest",dataset,numCat,homog,
-               forbEdges,stat,values,PACKAGE="gRapHD")
+               forbEdges,stat,values,comp,compType,PACKAGE="gRapHD")
   tree <- aux$tree
   storage.mode(homog) <- "logical"
   n <- NROW(tree)
-  result <- list(edges = matrix(tree[,1:2],n,2),
+
+  if (is.null(condEdges))
+  {
+    edges <- matrix(tree[,1:2],n,2)
+    statSeq <- tree[,3]
+    numP <- tree[,4]
+  }
+  else
+  {
+    edges <- rbind(matrix(tree[,1:2],n,2),condEdges)
+    statSeq <- c(tree[,3],rep(NA,nrow(condEdges)))
+    numP <- c(tree[,4],rep(NA,nrow(condEdges)))
+  }
+  result <- list(edges = edges,
                 p = p,
                 stat.minForest = switch(stat+1,"LR","BIC","AIC","User's function"),
-                statSeq = tree[,3],
+                statSeq = statSeq,
                 numCat = numCat,
                 homog = homog,
-                numP = tree[,4],
+                numP = numP,
                 vertNames = result,
-                minForest = c(1,nrow(tree)))
+                minForest = c(1,nrow(edges)))
   class(result)<-"gRapHD"
   if (dim(aux$errors)[1]!=0)
   {
@@ -1013,6 +1100,10 @@ perfSets <- function(model=NULL,edges=NULL,p=NULL,varType=0,from=0)
   storage.mode(p) <- storage.mode(varType) <- "integer"
   storage.mode(from) <- "integer"
   result <- .Call("perfSets",v1,v2,p,varType,from,PACKAGE="gRapHD")
+  
+  if (storage.mode(result)=="list")
+    names(result$cliques) <- names(result$histories) <-
+    names(result$separators) <- names(result$residuals) <- 1:length(result$cliques)
 
   return(result)
 }
@@ -1155,7 +1246,7 @@ plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
                         vert.radii=0.01,coord=NULL,col.ed="darkgray",lty.ed=1,
                         lwd.ed=1,lwd.vert=1,border=0,symbol.vert=1,
                         cex.vert.label=.40,vert.labels=TRUE,asp=NA,disp=TRUE,
-                        font=par("font"),...)
+                        font=par("font"),col.labels=NULL,...)
 {
   model <- x
   rm(x)
@@ -1318,9 +1409,14 @@ plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
     pLabels <- if (vert.labels[1]==F) FALSE else TRUE
     if (pLabels)
     {
-      Fill <- rep("white",length(varType))
-      Fill[varType==0] <- "black"
-      Fill <- Fill[vertices]
+      if (is.null(col.labels))
+      {
+        Fill <- rep("white",length(varType))
+        Fill[varType==0] <- "black"
+        Fill <- Fill[vertices]
+      }
+      else
+        Fill <- col.labels
 
       if (!is.logical(vert.labels[1]))
         text(x = coordV[, 1], y = coordV[, 2], vert.labels,

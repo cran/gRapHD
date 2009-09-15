@@ -118,15 +118,13 @@ unsigned int *whichMaxFE(unsigned int *d)
 //      graph is not triangulated; the second element [1] is the vertex numbered
 //      as 1; [2] the vertex numbered as 2, ...
 /******************************************************************************/
-//varType
-//unsigned int *mcsFE(SEXP v1, SEXP v2, unsigned int p, SEXP varType, unsigned int from)
-unsigned int *mcsFE(SEXP v1, SEXP v2, unsigned int p, SEXP numCat, unsigned int from)
+unsigned int *mcsFE(SEXP v1, SEXP v2, unsigned int p, SEXP numCat, unsigned int from, unsigned int **neighbourhood)
 {
   bool bTriangulated, found;
   unsigned int i, j, n_edges, v, first;
   unsigned int *ind2, *ind3, *ind4, *num_neigh, *numbered, *perfN;
   unsigned int n_numb = 0;
-  unsigned int **neighbourhood;
+//  unsigned int **neighbourhood;
 
 
   if (ISNA(INTEGER(v1)[0]) | ISNA(INTEGER(v2)[0]))
@@ -148,8 +146,6 @@ unsigned int *mcsFE(SEXP v1, SEXP v2, unsigned int p, SEXP numCat, unsigned int 
     v = 1;
     found = false;
     while ((i<=p) & !found)
-//varType
-//      if (INTEGER(varType)[i-1] == 1)
       if (INTEGER(numCat)[i-1] != 0)
         found = true;
       else
@@ -171,9 +167,9 @@ unsigned int *mcsFE(SEXP v1, SEXP v2, unsigned int p, SEXP numCat, unsigned int 
   num_neigh[0] = p;  //number of elements in the vector
 
   //the first position is never used (just to make it easier)
-  neighbourhood = (unsigned int **)malloc((p+1)*sizeof(unsigned int*));
-  for (i=1;i<=p;i++)
-    neighbourhood[i] = findNeigh(v1,v2,i,p);
+//  neighbourhood = (unsigned int **)malloc((p+1)*sizeof(unsigned int*));
+//  for (i=1;i<=p;i++)
+//    neighbourhood[i] = findNeigh(v1,v2,i,p);
 
   //while not numbered all vertices and the graph is triangulated
   while ((n_numb<p) & (bTriangulated))
@@ -199,8 +195,6 @@ unsigned int *mcsFE(SEXP v1, SEXP v2, unsigned int p, SEXP numCat, unsigned int 
       i = 1;
       found = false;
       while ((i<=p) & !found)
-//varType
-//        if ((INTEGER(varType)[i-1] == 1) && (numbered[i]==0))
         if ((INTEGER(numCat)[i-1] != 0) && (numbered[i]==0))
           found = true;
         else
@@ -217,8 +211,6 @@ unsigned int *mcsFE(SEXP v1, SEXP v2, unsigned int p, SEXP numCat, unsigned int 
       i = 1;
       found = false;
       while ((i<=ind2[0]) & !found)
-//varType
-//        if (INTEGER(varType)[ind2[i]-1] == 1)
         if (INTEGER(numCat)[ind2[i]-1] != 0)
           found = true;
         else
@@ -245,9 +237,11 @@ unsigned int *mcsFE(SEXP v1, SEXP v2, unsigned int p, SEXP numCat, unsigned int 
   if (!bTriangulated)
     perfN[0] = 0;
 
+/*
   for (i=1;i<=p;i++) // note that the first position was never used
     free(neighbourhood[i]);
   free(neighbourhood);
+*/
   free(num_neigh);
   free(numbered);
   return(perfN);
@@ -377,194 +371,80 @@ bool subSetFE(unsigned int *A, unsigned int *B)
 }
 
 /******************************************************************************/
-/* Returns the Laplacian A (nA by nA).                                        */
-/* C is a vector of pointers to the cliques                                   */
-/* S is the "separator" (the set that needs to be tested if it's really a sep)*/
-/* i is the lowest clique                                                     */
-/* j is the highest clique                                                    */
-/* nA starts with p (number of variables in the model) and ends with the      */
-/*    size of A                                                               */
-/* vert is the list of vertices in A                                          */
-/* v1 and v2 are the edges                                                    */
-/*                                                                            */
-/* It includes all vertices in the cliques from i to j, removing the ones     */
-/* in S. The diagonal contains the degree of each vertex in "vert", restrict  */
-/* to the subgraph induced by it. The off diagonal if -1 if there is a edge   */
-/* between those 2 vertices, otherwise 0.                                     */
+/* verifies if x is in A                                                      */
 /******************************************************************************/
-double* buildA(unsigned int *C[], unsigned int *S, unsigned int i,
-               unsigned int j, unsigned int *nA, unsigned int *vert, SEXP v1,
-               SEXP v2)
+bool isEl(unsigned int x, unsigned int *A)
 {
-  // nA[0] initially has p (number of vertices in the model)
-  unsigned int u, k;
-  unsigned int n, p;
-  double *A;
-  unsigned int *neigh;
-  
-  p = nA[0];
-
-  for (k=0; k<p; k++)
-    vert[k] = 0;
-
-  n = 0;
-  for (k=i-1; k<j; k++)  //from i-1 to k-1 because the index in C starts from 0
-    for (u=1; u<=C[k][0]; u++)
-      vert[C[k][u]-1] = 1;
-
-  for (k=1; k<=S[0]; k++)
-    vert[S[k]-1] = 0;
-
-  n = 0;
-  for (k=0; k<p; k++)
-    if (vert[k] == 1)
-    {
-      n++;
-      vert[k] = n;
-    }
-
-  A = (double *)calloc(n*n,sizeof(double));
-
-  for (k=0; k<p; k++)
-  {
-    if (vert[k] > 0)
-    {
-      neigh = findNeigh(v1,v2,k+1,p);
-      for (u=1; u<=neigh[0]; u++)
-        if (vert[neigh[u]-1] > 0)
-        {
-          A[(vert[k]-1)*n+(vert[neigh[u]-1]-1)] = -1;
-          A[(vert[neigh[u]-1]-1)*n+(vert[k]-1)] = -1;
-        }
-      free(neigh);
-    }
-  }
-
-  for (k=0; k<n; k++)
-    for (u=0; u<n; u++)
-      if (k != u)
-        A[k*n+k] -= A[u*n+k];
-  nA[0] = n;
-  return(A);
+  bool found=false;
+  unsigned int i=1;
+  if (A[0]!=0)
+    while ((i<=A[0]) && (!found))
+      found = (x==A[i++]);
+  return(found);
 }
 
 /******************************************************************************/
-/* calculates the rank of a matrix A (n by n) using Gaussian elimination      */
+/* tests if S is a true separator of C1 and C2 in the graph giben by (v1,v2)  */
 /******************************************************************************/
-unsigned int gaussEl(double *A, unsigned int n)
+bool isTrueSep(SEXP v1, SEXP v2, unsigned int *C1, unsigned int *C2,
+               unsigned int *S, unsigned int p, unsigned int **neighbourhood)
 {
-  unsigned int *ind;
-  unsigned int i, maxi, u, k, j, ii;
-  unsigned int result = 0;
-  double b;
+  unsigned int *L; //list of vertices that have to be visited; always the last
+                   //element is the next to be visited
+  unsigned int w, v;
+  unsigned int *arr, *aux, *C;
+  char *visited;
+  bool found = false;
 
-  ind = (unsigned int *)malloc(n*sizeof(unsigned int));
-  for (i=0; i<n; i++)
-    ind[i] = i;
-  i = 0;
-  j = 0;
-
-  while ((i < n) & (j < n))
+  C1 = setDiff(C1,S);
+  C2 = setDiff(C2,S);
+  if (C1[0] > C2[0])
   {
-    maxi = i;
-    for (k=(i+1); k<n; k++)
-      if (fabs(A[j*n+ind[k]]) > fabs(A[j*n+ind[maxi]]))
-        maxi = k;
-        
-    if (A[j*n+ind[maxi]] != 0)
-    {
-      result++;
-      u = ind[i];
-      ind[i] = ind[maxi];
-      ind[maxi] = u;
-      b = A[j*n+ind[i]];
-      
-      for (u=j; u<n; u++)
-        A[u*n+ind[i]] = A[u*n+ind[i]]/b;
-      for (u=(i+1); u<n; u++)
-      {
-        b = A[j*n+ind[u]];
-        for(k=0; k<n; k++)
-        {
-          ii = k*n;
-          A[ii+ind[u]] -= b*A[ii+ind[i]];
-          if (fabs(A[ii+ind[u]]) < 1E-8)
-            A[ii+ind[u]] = 0;
-        }
-      }
-      i++;
-    }
-    j++;
+    C = C1;
+    v = C2[1];
   }
-  free(ind);
-  return(result);//(n - (2*n - u - k));
-}
-
-
-/******************************************************************************/
-/* calculates the rank of a matrix A (n by n) using QR decomposition          */
-/******************************************************************************/
-unsigned int qrDec(double *A, unsigned int n)
-{
-  unsigned int i,j,k;
-  double *d;
-  double *c;
-  double scale,sigma,sum,tau;
-
-  d = (double *)malloc(n*sizeof(double));
-  c = (double *)malloc(n*sizeof(double));
-
-  for (k=0;k<n-1;k++)
-  {
-    scale = 0.0;
-    for (i=k;i<n;i++)
-      scale = fmax(scale,fabs(A[n*k+i]));
-    if (scale == 0.0) //Singular case.
-      c[k] = d[k] = 0.0;
-    else //Form Qk and Qk*A
-    {
-      for (i=k;i<n;i++)
-        A[n*k+i] /= scale;
-      for (sum=0.0,i=k;i<n;i++)
-        sum += A[n*k+i]*A[n*k+i];
-      sigma = sqrt(sum)*sign(A[n*k+k]);
-      A[n*k+k] +=  sigma;
-      c[k] = sigma*A[n*k+k];
-      d[k] = -scale*sigma;
-      for (j=k+1;j<n;j++)
-      {
-        for (sum=0.0,i=k;i<n;i++)
-          sum += A[n*k+i]*A[n*j+i];
-        tau = sum/c[k];
-        for (i=k;i<n;i++)
-          A[n*j+i] -= tau*A[n*k+i];
-      }
-    }
-  }
-  d[n-1] = A[n*(n-1)+(n-1)];
-
-  k = 0;
-  for (i=0;i<n;i++)
-    if (fabs(d[i])<1E-8)
-      k++;
-
-  k = n - k;
-  free(d);
-  free(c);
-  return(k);
-}
-
-
-/******************************************************************************/
-/* calculates the rank of a matrix A (n by n) using QR decomposition (type=1) */
-/* or gaussian elimination (type=2).                                          */
-/******************************************************************************/
-unsigned int rank(double *A, unsigned int n, char type)
-{
-  if (type == 1)
-    return(qrDec(A,n));
   else
-    return(gaussEl(A,n));
+  {
+    C = C2;
+    v = C1[1];
+  }
+
+//  char visited[p+1]; //list of visited vertices (1 if visited, 0 otherwise)
+//  for (i=0;i<=p;i++)
+//    visited[i] = 0;
+
+  visited = (char*)calloc(p+1,sizeof(char));
+  visited[v] = 1; //the reference vertex starts as visited
+
+  L = setDiff(neighbourhood[v],S);
+  while ((L[0] > 0) && !found)
+  {
+    w = L[L[0]--]; //removes the next vertex to be visited from the list
+    if (visited[w]==0) //hasn't already been visited
+    {
+      found = isEl(w,C);
+      if (!found)
+      {
+        visited[w] = 1;
+        aux = setDiff(neighbourhood[w],S);//the neighbours of w have to be visited
+        arr = bindFE(aux,L);
+/*
+        arr = (unsigned int *)malloc((L[0]+aux[0]+1)*sizeof(unsigned int));
+        arr[0] = 0;
+        for (i=1;i<=aux[0];i++)
+          arr[++arr[0]] = aux[i];
+        for (i=1;i<=L[0];i++)
+          arr[++arr[0]] = L[i];
+*/
+        free(L);
+        free(aux);
+        L = arr;
+      }
+    }
+  }
+  free(visited);
+  free(L);
+  return(!found);
 }
 
 
@@ -585,7 +465,7 @@ unsigned int rank(double *A, unsigned int n, char type)
 //                vector)
 //     varType - pointer SEXP, 0 if the vertex is continuous or 1 if discrete
 //     FROM
-//     USERANK - "boolean"
+//     EXACT - "boolean"
 // Out: R list
 //        edges - matrix k by 5:
 //                  column 1: first vertex in the edge
@@ -596,66 +476,51 @@ unsigned int rank(double *A, unsigned int n, char type)
 //        S - list with kk elements (separators)
 //        total - number of lines that must be used from the matrix edges (<=k)
 /******************************************************************************/
-//varType
-//SEXP findEd(SEXP v1, SEXP v2, SEXP pp, SEXP previous, SEXP varType, SEXP FROM,
-//            SEXP USERANK, SEXP JOIN)
 SEXP findEd(SEXP v1, SEXP v2, SEXP pp, SEXP previous, SEXP numCat, SEXP FROM,
-            SEXP USERANK, SEXP JOIN)
+            SEXP EXACT, SEXP JOIN)
 {
-  unsigned int i, j, k, x, y, z, ii, jj, iii, kk;
-  unsigned int numNewEdges;
-  unsigned int numPr = 0;
-  unsigned int *perfN, *perfNaux, *neigh, *Hdisj, *aux, *aux1;
+  unsigned int i, j, k, x, y, z, ii, jj, iii, kk, t, numB = 0;
+  unsigned int numNewEdges, numPr = 0;
+  unsigned int *perfN, *perfNaux, *aux, *aux1;
   unsigned int *newEdges1, *newEdges2, *newEdges3;
   unsigned int numC = 0; //number of sets
-  bool disjoint, include, join;
-  char useRank;
-  unsigned int from, numComp, p;
-  unsigned int *vert;
-  double *A;
-  unsigned int *nA = (unsigned int*)malloc(1*sizeof(unsigned int));
+  bool disjoint, include, join, trueSep, found;
+  char exact;
+  unsigned int from, p, *vert;
 
-  useRank = INTEGER(USERANK)[0];
+  exact = INTEGER(EXACT)[0];
   join = INTEGER(JOIN)[0];
   from = INTEGER(FROM)[0];
   p = INTEGER(pp)[0];
   vert = (unsigned int*)malloc(p*sizeof(unsigned int));
   unsigned int *C[p-1]; //perfect sequence
-  unsigned int *H[p-1]; //list of histories
-  unsigned int *R[p-1]; //list of residuals
-  unsigned int *S[p-1]; //list of separators
   struct nodeFE *newEdges = NULL;
   struct nodeFE *currNewEdges = NULL;
-  unsigned int *H1;
-  unsigned int *R1;
+  unsigned int *H1 = NULL;
+  unsigned int *R1 = NULL;
+  unsigned int *Hdisj = NULL;
+  unsigned int **neighbourhood;
   SEXP S1;
+
+  neighbourhood = (unsigned int **)malloc((p+1)*sizeof(unsigned int*));
+  for (i=1;i<=p;i++) neighbourhood[i] = findNeigh(v1,v2,i,p);
   //////////////////////////////////////////////////////////////////////////////
   // FIND THE PERFECT SEQUENCE
   perfNaux = (unsigned int *)calloc(p+1,sizeof(unsigned int));
   perfNaux[0] = 0;
-//varType
-//  perfN = mcsFE(v1,v2,p,varType,from); //the perfect numbering
-  perfN = mcsFE(v1,v2,p,numCat,from); //the perfect numbering
+  perfN = mcsFE(v1,v2,p,numCat,from,neighbourhood); //the perfect numbering
   for (i=1;i<=p;i++)
   {
     perfNaux[0]++;
     perfNaux[i] = perfN[i];
-    neigh = findNeigh(v1,v2,perfN[i],p);
-    aux = intersect(neigh,perfNaux);
-    aux[0]++;
-    aux[aux[0]] = perfN[i];
-    C[numC] = aux;
-    numC++;
-    free(neigh);
+    aux = intersect(neighbourhood[perfN[i]],perfNaux);
+    aux[++aux[0]] = perfN[i];
+    C[numC++] = aux;
   }
-  free(perfNaux);
   free(perfN);
 
 /******************************************************************************/
 // to remove what is not a clique (subset of a clique)
-  unsigned int numB = 0;
-  unsigned int t;
-  bool found;
   t = 0;
   numB = numC;
   while (t < numC)
@@ -666,22 +531,18 @@ SEXP findEd(SEXP v1, SEXP v2, SEXP pp, SEXP previous, SEXP numCat, SEXP FROM,
       found = false;
       while ((i<numC) & (!found))
       {
-        if (t != i)
-          found = subSetFE(C[t],C[i]);
+        if (t != i) found = subSetFE(C[t],C[i]);
         i++;
       }
       i--;
       if (found)
       {
         numB--;
+        free(C[t]);
         if (i<t)
-        {
-          free(C[t]);
           C[t] = NULL;
-        }
         else
         {
-          free(C[t]);
           C[t] = C[i];
           C[i] = NULL;
           t--; //as C[i] is in t-th position, this one has to be tested again
@@ -695,13 +556,15 @@ SEXP findEd(SEXP v1, SEXP v2, SEXP pp, SEXP previous, SEXP numCat, SEXP FROM,
     if (C[i]==NULL)
     {
       j = i;
-      while ((C[j]==NULL) & (j<numC-1))
-        j++;
+      while ((C[j]==NULL) & (j<numC-1)) j++;
       C[i] = C[j];
       C[j] = NULL;
     }
   }
   numC = numB;
+  unsigned int *H[numC]; //list of histories
+  unsigned int *R[numC]; //list of residuals
+  unsigned int *S[numC]; //list of separators
 /******************************************************************************/
   //////////////////////////////////////////////////////////////////////////////
   // FIND THE HISTORIES (H), RESIDUALS (R), AND SEPARATORS (S)
@@ -721,21 +584,19 @@ SEXP findEd(SEXP v1, SEXP v2, SEXP pp, SEXP previous, SEXP numCat, SEXP FROM,
     S[i-1] = intersect(H[i-2],C[i-1]);
   }
   //////////////////////////////////////////////////////////////////////////////
-  // FIND THE POSSIBLE EDGES TO BE ADDED (David Edwards' algorithm)
+  // FIND THE POSSIBLE EDGES TO BE ADDED
   numNewEdges = 0;
+
   for (j=2; j<=numC; j++)
   {
     i = j;
     disjoint = false;
     while ((!disjoint) & (i>1))
     {
-      if (S[i-1] == NULL)
-        disjoint = true;
+      if (S[i-1] == NULL) disjoint = true;
       else
-        if (S[i-1][0] == 0)
-          disjoint = true;
+        if (S[i-1][0] == 0) disjoint = true;
       i--;
-////////////////////////////////////////////////////////////////////////////////
       include = false;
       if (disjoint && join)
       {
@@ -746,24 +607,12 @@ SEXP findEd(SEXP v1, SEXP v2, SEXP pp, SEXP previous, SEXP numCat, SEXP FROM,
       else
       {
         Hdisj = intersect(C[i-1],C[j-1]);
-        if (Hdisj[0] != 0)
-          include = findSetFE(S,j,Hdisj);
+        if (Hdisj[0] != 0) include = findSetFE(S,j,Hdisj);
         if (include)
         {
-          numComp = 2;
-          if (useRank > 0)
-          {
-            //vert = (unsigned int*)calloc(p,sizeof(unsigned int));
-            nA[0] = p;
-            A = buildA(C,Hdisj,i,j,nA,vert,v1,v2);
-            //free(vert);
-            if (nA[0] > 1)
-              numComp = nA[0] - rank(A,nA[0],useRank);
-            else
-              numComp = 1;
-            free(A);
-          }
-          include = (numComp > 1);
+          trueSep = true;
+          if (exact > 0) trueSep = isTrueSep(v1,v2,C[i-1],C[j-1],Hdisj,p,neighbourhood);
+          include = trueSep;
           if (include)
           {
             R1 = duplFE(R[j-1]);
@@ -801,8 +650,7 @@ SEXP findEd(SEXP v1, SEXP v2, SEXP pp, SEXP previous, SEXP numCat, SEXP FROM,
           if (!disjoint)
           {
             PROTECT(S1 = allocVector(INTSXP, Hdisj[0]));
-            for (iii=1; iii<=Hdisj[0]; iii++)
-              INTEGER(S1)[iii-1] = Hdisj[iii];
+            for (iii=1; iii<=Hdisj[0]; iii++) INTEGER(S1)[iii-1] = Hdisj[iii];
             free(Hdisj);
           }
           else
@@ -829,12 +677,11 @@ SEXP findEd(SEXP v1, SEXP v2, SEXP pp, SEXP previous, SEXP numCat, SEXP FROM,
         free(R1);
       }
       else
-        if (!disjoint)
-          free(Hdisj);
+        if (!disjoint) free(Hdisj);
     }
   }
   free(vert);
-  free(nA);
+
   for (i=1; i<=numC; i++)
   {
     free(C[i-1]);
@@ -842,6 +689,10 @@ SEXP findEd(SEXP v1, SEXP v2, SEXP pp, SEXP previous, SEXP numCat, SEXP FROM,
     free(R[i-1]);
     free(S[i-1]);
   }
+
+  // note that the first position in neighbourhood was never used
+  for (i=1;i<=p;i++) free(neighbourhood[i]);
+  free(neighbourhood);
 
   //////////////////////////////////////////////////////////////////////////////
   // ASSEMBLE THE RESULTS IN R STRUCTURE
@@ -872,7 +723,7 @@ SEXP findEd(SEXP v1, SEXP v2, SEXP pp, SEXP previous, SEXP numCat, SEXP FROM,
   SET_VECTOR_ELT(list, 1, subList);
   SET_VECTOR_ELT(list, 2, total);
   setAttrib(list, R_NamesSymbol, listNames);
-
+  
   k = 0; //index in edges
   kk = 0; //index in S (sublist)
   unsigned int *edgesAdded = (unsigned int *)malloc((numNewEdges+1)*sizeof(unsigned int));
@@ -952,15 +803,13 @@ SEXP findEd(SEXP v1, SEXP v2, SEXP pp, SEXP previous, SEXP numCat, SEXP FROM,
 //        separators - list
 //        residuals - list
 /******************************************************************************/
-//varType
-//SEXP perfSets(SEXP v1, SEXP v2, SEXP pp, SEXP varType, SEXP FROM)
 SEXP perfSets(SEXP v1, SEXP v2, SEXP pp, SEXP numCat, SEXP FROM)
 {
   unsigned int i, j, p;
   unsigned int numPr=0;
   unsigned int *perfN, *perfNaux, *neigh, *aux, *aux1;
   unsigned int numC = 0; //number of sets
-  unsigned int from;
+  unsigned int from, **neighbourhood;
   SEXP list; //the final result
   from = INTEGER(FROM)[0];
   p = INTEGER(pp)[0];
@@ -968,13 +817,15 @@ SEXP perfSets(SEXP v1, SEXP v2, SEXP pp, SEXP numCat, SEXP FROM)
   unsigned int *H[p-1]; //list of histories
   unsigned int *R[p-1]; //list of residuals
   unsigned int *S[p-1]; //list of separators
+
+  neighbourhood = (unsigned int **)malloc((p+1)*sizeof(unsigned int*));
+  for (i=1;i<=p;i++)
+    neighbourhood[i] = findNeigh(v1,v2,i,p);
   //////////////////////////////////////////////////////////////////////////////
   // FIND THE PERFECT SEQUENCE
   perfNaux = (unsigned int *)calloc(p+1,sizeof(unsigned int));
   perfNaux[0] = 0;
-//varType
-//  perfN = mcsFE(v1,v2,p,varType,from); //the perfect numbering
-  perfN = mcsFE(v1,v2,p,numCat,from); //the perfect numbering
+  perfN = mcsFE(v1,v2,p,numCat,from,neighbourhood); //the perfect numbering
   if (perfN[0]!=0)
   {
     for (i=1;i<=p;i++)
@@ -1043,7 +894,7 @@ SEXP perfSets(SEXP v1, SEXP v2, SEXP pp, SEXP numCat, SEXP FROM)
       }
     }
     numC = numB;
-  /******************************************************************************/
+/******************************************************************************/
     //////////////////////////////////////////////////////////////////////////////
     // FIND THE HISTORIES (H), RESIDUALS (R), AND SEPARATORS (S)
     S[0] = NULL;
@@ -1077,7 +928,7 @@ SEXP perfSets(SEXP v1, SEXP v2, SEXP pp, SEXP numCat, SEXP FROM)
     PROTECT(residuals = allocVector(VECSXP,numC));
     numPr++;
     SEXP X;
-   for (i=0; i<numC; i++)
+    for (i=0; i<numC; i++)
     {
       PROTECT(X = allocVector(INTSXP, C[i][0]));
       numPr++;
@@ -1139,6 +990,9 @@ SEXP perfSets(SEXP v1, SEXP v2, SEXP pp, SEXP numCat, SEXP FROM)
     numPr++;
     INTEGER(list)[0] = 0;
   }
+  for (i=1;i<=p;i++) // note that the first position was never used
+    free(neighbourhood[i]);
+  free(neighbourhood);
 
   UNPROTECT(numPr);
   return(list);
@@ -1277,38 +1131,38 @@ void jTree(unsigned int *C[],unsigned int *S[],unsigned int numC,
 //                   indSepOrig[i] in separators
 //      cliques - cliques from MCS
 /******************************************************************************/
-//varType
-//SEXP juncTree(SEXP v1, SEXP v2, SEXP pp, SEXP varType)
 SEXP juncTree(SEXP v1, SEXP v2, SEXP pp, SEXP numCat)
 {
   unsigned int i, j;
   unsigned int numPr = 0;
-  unsigned int *perfN, *perfNaux, *neigh, *aux, *aux1;
+  unsigned int *perfN, *perfNaux, *aux, *aux1;
   unsigned int numC = 0; //number of sets
-  unsigned int from = 0;
+  unsigned int from = 0, **neighbourhood;
   short unsigned p = INTEGER(pp)[0];
   unsigned int *C[p-1]; //perfect sequence
   unsigned int *H[p-1]; //list of histories
   unsigned int *R[p-1]; //list of residuals
   unsigned int *S[p-1]; //list of separators
+
+  neighbourhood = (unsigned int **)malloc((p+1)*sizeof(unsigned int*));
+  for (i=1;i<=p;i++)
+    neighbourhood[i] = findNeigh(v1,v2,i,p);
   //////////////////////////////////////////////////////////////////////////////
   // FIND THE PERFECT SEQUENCE
   perfNaux = (unsigned int *)calloc(p+1,sizeof(unsigned int));
   perfNaux[0] = 0;
-//varType
-//  perfN = mcsFE(v1,v2,p,varType,from); //the perfect numbering
-  perfN = mcsFE(v1,v2,p,numCat,from); //the perfect numbering
+  perfN = mcsFE(v1,v2,p,numCat,from,neighbourhood); //the perfect numbering
   for (i=1;i<=p;i++)
   {
     perfNaux[0]++;
     perfNaux[i] = perfN[i];
-    neigh = findNeigh(v1,v2,perfN[i],p);
-    aux = intersect(neigh,perfNaux);
+//    neigh = findNeigh(v1,v2,perfN[i],p);
+    aux = intersect(neighbourhood[perfN[i]],perfNaux);
     aux[0]++;
     aux[aux[0]] = perfN[i];
     C[numC] = aux;
     numC++;
-    free(neigh);
+//    free(neigh);
   }
   free(perfNaux);
   free(perfN);
@@ -1364,6 +1218,9 @@ SEXP juncTree(SEXP v1, SEXP v2, SEXP pp, SEXP numCat)
   }
   numC = numB;
 /******************************************************************************/
+  for (i=1;i<=p;i++) // note that the first position was never used
+    free(neighbourhood[i]);
+  free(neighbourhood);
   //////////////////////////////////////////////////////////////////////////////
   // FIND THE HISTORIES (H), RESIDUALS (R), AND SEPARATORS (S)
   S[0] = NULL;

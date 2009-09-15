@@ -339,8 +339,8 @@ static void cleanMem(struct nodeBT *root)
 //     vert2 - pointer to int, will contain the second vertex of the edge
 //     LR - pointer to double vector, will contain the respective LR
 //     p - int, number of vertices
-//     comp - pointer int, indicates in which component is the vertex
-//     type - pointe int, if the component is continuous (0), discrete (1), or
+//     comp - pointer int, indicates in which component the vertex is
+//     type - pointer int, if the component is continuous (0), discrete (1), or
 //            mixed (2)
 //     varType - pointer SEXP, type of each variable
 //     numP - pointer unsigned short, number of parameters in the edge
@@ -683,14 +683,19 @@ struct nodeBT* calc(SEXP dataset, SEXP numCat, bool homog,
 //              If numCat=k, then the categories are: 1,2,...,k.
 //     homog - if the model is homog (TRUE) or heterog (FALSE)
 //     forbEdges - pointer SEXP (double), k; list of forbidden edges
-//     stat - pointer SEXP, 0 (LR), 1 (BIC), or 2 (AIC)
+//     stat - pointer SEXP, 0 (LR), 1 (BIC), 2 (AIC), or 3 (user values)
+//     values - pointer SEXP, if stat>3
+//     comp - pointer SEXP, to which component each node is assigned (if there
+//            is no initial edge, then it's 1:p
+//     compType - pointer SEXP, component type, 0 (cont), 1 (discr), 2 (mixed)
 // Out: matrix (p-1) by 3: [,1] = first vertices, [,2] = second vertices;
 //                         [,3] = LR.
 /******************************************************************************/
 //SEXP minForest(SEXP dataset, SEXP varType, SEXP numCat, SEXP HOMOG,
 //               SEXP forbEdges, SEXP STAT,SEXP VALUES)
 SEXP minForest(SEXP dataset, SEXP numCat, SEXP HOMOG,
-               SEXP forbEdges, SEXP STAT,SEXP VALUES)
+               SEXP forbEdges, SEXP STAT,SEXP VALUES,
+               SEXP COMP, SEXP COMPTYPE)
 {
   unsigned int i, p, n, k, N, Nv, *errors, *w;
   unsigned int numPr = 0;
@@ -745,9 +750,10 @@ SEXP minForest(SEXP dataset, SEXP numCat, SEXP HOMOG,
   type[0] = p;
   for (i=1; i<=p; i++)
   {
-    comp[i] = i;
-//    type[i] = INTEGER(varType)[i-1];
-    type[i] = 1*(INTEGER(numCat)[i-1]!=0);
+    //comp[i] = i;
+    comp[i] = INTEGER(COMP)[i-1];
+    //type[i] = 1*(INTEGER(numCat)[i-1]!=0);
+    type[i] = INTEGER(COMPTYPE)[i-1];
   }
   i = errors[0];
   free(errors);

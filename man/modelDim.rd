@@ -33,13 +33,13 @@ Lauritzen, S.L. (1996) \emph{Graphical Models}, Oxford University Press.\cr
 
 
 \examples{
-  data(dsMixed)
-  m <- minForest(dsMixed,homog=TRUE,stat="LR")
+  data(dsCont)
+  m <- minForest(dsCont,stat="BIC")
   modelDim(m)
-  # 71
+  # 102
 
-  m <- minForest(dsMixed,homog=FALSE,stat="LR")
+  m <- stepw(m,dsCont,stat="BIC")
   modelDim(m)
-  # 111
+  # 149
 }
 \keyword{graphs}

@@ -13,7 +13,7 @@
      coord=NULL,col.ed="darkgray",lty.ed=1,
      lwd.ed=1,lwd.vert=1,border=0,symbol.vert=1,
      cex.vert.label=.40,vert.labels=TRUE,asp=NA,disp=TRUE,
-     font=par("font"),...)
+     font=par("font"),col.labels=NULL,...)
 }
 
 \arguments{
@@ -51,6 +51,8 @@
               possible, device drivers let 1 correspond to plain
               text (the default), 2 to bold face, 3 to italic and 4 to bold
               italic.}
+  \item{col.labels}{colour of the labels. Default is \code{NULL}, using black
+                    for continuous vertices and white for discrete.}
   \item{\dots}{further arguments passed to or from other methods.}
 }
 

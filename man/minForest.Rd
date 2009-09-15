@@ -6,7 +6,7 @@
 }
 
 \usage{
-  minForest(dataset,homog=TRUE,forbEdges=NULL,stat="BIC",...)
+  minForest(dataset,homog=TRUE,forbEdges=NULL,stat="BIC",cond=NULL,...)
 }
 
 \arguments{
@@ -24,6 +24,7 @@
               dataset)}; where the parameters \code{varType} and \code{numCat}
               are as defined in the Value section; \code{newEdge} is a vector
               with length two; and \code{dataset} is a matrix (n by p).}
+  \item{cond}{list with complete sets.}
   \item{...}{arguments to be passed to the user function in \code{stat}.}
 }
 
@@ -35,9 +36,9 @@
   \item{p}{number of variables (vertices) in the model.}
   \item{stat.minForest}{measure used (LR, AIC, or BIC).}
   \item{statSeq}{vector with value of \code{stat.minForest} for each edge.}
-  \item{vertNames}{vector with the original vertices' names. If there is no
+  \item{vertNames}{vector with the original vertices' names. If there are no
                    names in \code{dataset} then the vertices will be named
-                   according to the original column indexes.}
+                   according to the original column indexes in \code{dataset}.}
   \item{numCat}{vector with number of levels for each variable (0 if continuous).}
   \item{homog}{\code{TRUE} if the covariance is homogeneous.}
   \item{numP}{vector with number of estimated parameters for each edge.}
