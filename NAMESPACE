@@ -6,7 +6,7 @@ export(minForest,calcStat,chStat,DFS,findEd,neighbours,MCS,perfSets,randTree,
        summary.gRapHD,print.gRapHD,show.gRapHD,plot.gRapHD,CI.test,
        matrix.gRapHD,gRapHD.graphNEL,graphNEL.gRapHD,initialize.gRapHD,stepb)
 
-#importFrom(methods,is,as)
+importFrom(methods)
 
 importClassesFrom(graph,graphNEL)
 
