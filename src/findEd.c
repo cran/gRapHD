@@ -772,7 +772,7 @@ SEXP perfSets(SEXP v1, SEXP v2, SEXP pp, SEXP numCat, SEXP FROM)
 {
   unsigned int i, j, p;
   unsigned int numPr=0;
-  unsigned int *perfN, *perfNaux, *neigh, *aux, *aux1;
+  unsigned int *perfN, *perfNaux, *aux, *aux1;
   unsigned int numC = 0; //number of sets
   unsigned int from, **neighbourhood;
   SEXP list; //the final result
@@ -797,14 +797,15 @@ SEXP perfSets(SEXP v1, SEXP v2, SEXP pp, SEXP numCat, SEXP FROM)
     {
       perfNaux[0]++;
       perfNaux[i] = perfN[i];
-      neigh = findNeigh(v1,v2,perfN[i],p);
-      aux = intersect(neigh,perfNaux);
+      aux = intersect(neighbourhood[perfN[i]],perfNaux);
       aux[0]++;
       aux[aux[0]] = perfN[i];
       C[numC] = aux;
       numC++;
-      free(neigh);
     }
+    for (i=1;i<=p;i++) // note that the first position was never used
+      free(neighbourhood[i]);
+    free(neighbourhood);
     free(perfNaux);
     free(perfN);
   /******************************************************************************/
@@ -944,15 +945,15 @@ SEXP perfSets(SEXP v1, SEXP v2, SEXP pp, SEXP numCat, SEXP FROM)
   }
   else
   {
+    for (i=1;i<=p;i++) // note that the first position was never used
+      free(neighbourhood[i]);
+    free(neighbourhood);
     free(perfNaux);
     free(perfN);
     PROTECT(list = allocVector(INTSXP,1));
     numPr++;
     INTEGER(list)[0] = 0;
   }
-  for (i=1;i<=p;i++) // note that the first position was never used
-    free(neighbourhood[i]);
-  free(neighbourhood);
 
   UNPROTECT(numPr);
   return(list);

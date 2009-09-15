@@ -54,6 +54,7 @@ SEXP shortPath(SEXP v1, SEXP v2, SEXP V, SEXP P)
 {
   unsigned int *distV, *Q, *ind;
   unsigned int v, p, nQ, u, j, alt, i, x;
+  unsigned int **neighbourhood;
   
   p = INTEGER(P)[0];
   v = INTEGER(V)[0];
@@ -67,6 +68,9 @@ SEXP shortPath(SEXP v1, SEXP v2, SEXP V, SEXP P)
   distV[0] = p; //number of elements in the array
   Q[0] = p; //idem
   distV[v] = 0; //distance from v to v
+
+  neighbourhood = (unsigned int **)malloc((p+1)*sizeof(unsigned int*));
+  for (i=1;i<=p;i++) neighbourhood[i] = findNeigh(v1,v2,i,p);
   
   nQ = p; //number of elements in Q not yet visited
   while (nQ > 0)
@@ -75,15 +79,17 @@ SEXP shortPath(SEXP v1, SEXP v2, SEXP V, SEXP P)
     x = Q[u];
     Q[u] = 0;
     nQ--;
-    ind = findNeigh(v1,v2,x,p);
+    ind = neighbourhood[x];//findNeigh(v1,v2,x,p);
     for (j=1;j<=ind[0];j++)
     {
       alt = distV[x] + 1;
       if (alt < distV[ind[j]])
         distV[ind[j]] = alt;
     }
-    free(ind);
+    //free(ind);
   }
+  for (i=1;i<=p;i++) free(neighbourhood[i]);
+  free(neighbourhood);
 
   SEXP result;
   PROTECT(result = allocVector(INTSXP,p));
@@ -95,3 +101,58 @@ SEXP shortPath(SEXP v1, SEXP v2, SEXP V, SEXP P)
   UNPROTECT(1);
   return(result);
 }
+
+SEXP spAll(SEXP v1, SEXP v2, SEXP P)
+{
+  unsigned int *distV, *Q, *ind;
+  unsigned int v, p, nQ, u, j, alt, i, x;
+  unsigned int **neighbourhood;
+
+  p = INTEGER(P)[0];
+
+  SEXP result;
+  PROTECT(result = allocMatrix(INTSXP,p,p));
+  distV = (unsigned int *)malloc((p+1)*sizeof(unsigned int)); //distance from v to i (dist[i])
+  Q = (unsigned int *)malloc((p+1)*sizeof(unsigned int));
+  neighbourhood = (unsigned int **)malloc((p+1)*sizeof(unsigned int*));
+  for (i=1;i<=p;i++) neighbourhood[i] = findNeigh(v1,v2,i,p);
+
+  for (v=1;v<=p;v++)
+  {
+    for (i=1;i<=p;i++)
+    {
+      distV[i] = p; //miximum distance + 1
+      Q[i] = i; //set of vertices
+    }
+    distV[0] = Q[0] = p; //number of elements in the array
+    distV[v] = 0; //distance from v to v
+
+    nQ = p; //number of elements in Q not yet visited
+    while (nQ > 0)
+    {
+      u = whichMinSP(distV,Q); //the vertex with minimum distance from v
+      x = Q[u];
+      Q[u] = 0;
+      nQ--;
+      ind = neighbourhood[x];//findNeigh(v1,v2,x,p);
+      for (j=1;j<=ind[0];j++)
+      {
+        alt = distV[x] + 1;
+        if (alt < distV[ind[j]])
+          distV[ind[j]] = alt;
+      }
+    }
+    for (i=0;i<p;i++)
+      INTEGER(result)[i*p+v-1] = distV[i+1];
+  }
+
+  for (i=1;i<=p;i++) free(neighbourhood[i]);
+  free(neighbourhood);
+
+  free(distV);
+  free(Q);
+
+  UNPROTECT(1);
+  return(result);
+}
+

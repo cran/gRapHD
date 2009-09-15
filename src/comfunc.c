@@ -28,7 +28,7 @@
 #include "comfunc.h"
 
 /******************************************************************************/
-// called from: findEd.c; mcs.c; buildF.c
+// called from: findEd.c; mcs.c; buildF.c; cond.c
 //
 // Like R's "which", returns the indexes in d for elements equal (s=1) or not
 // equal (s=0) k.
@@ -100,7 +100,7 @@ unsigned int *whichS(SEXP d, unsigned int k, bool equal)
 }
 
 /******************************************************************************/
-// called from: mcs.c; findEd.c; dfs.c
+// called from: mcs.c; findEd.c; dfs.c; cond.c
 //
 // Find the neighbours of a vertex.
 // In: v1 - pointer SEXP (int), with the first vertex of the edge

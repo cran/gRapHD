@@ -113,7 +113,8 @@ SubGraph <- function(model=NULL,edges=NULL,v=NULL,p=0)
     v <- sort(unique(v))
     if (max(v)>result$p)
       stop(paste("v must be in [1,",result$p,"].",sep=""))
-    ind <- apply(edges,1,function(x,y){length(intersect(x,y))==2},y=v)
+    #ind <- apply(edges,1,function(x,y){length(intersect(x,y))==2},y=v)
+    ind <- (edges[,1]%in%v) & (edges[,2]%in%v)
     result$edges <- matrix(edges[ind,],ncol=2)
     result$statSeq <- result$statSeq[ind]
     result$numP <- result$numP[ind]
@@ -281,6 +282,14 @@ DFS <- function(model=NULL,edges=NULL, v, p=NULL)
 ################################################################################
 minForest <- function(dataset,homog=TRUE,forbEdges=NULL,stat="BIC",cond=NULL,...)
 {
+  comps <- function(cond)
+  {
+    for (i in 1:length(cond))
+      storage.mode(cond[[i]]) <- "integer"
+    result <- .Call("components",cond,PACKAGE="gRapHD")
+    return(result)
+  }
+
   if (length(stat)==0)
     stop("No valid measure. Options: LR, BIC, AIC, or a user defined function.")
   if (mode(stat)=="function")
@@ -333,46 +342,27 @@ minForest <- function(dataset,homog=TRUE,forbEdges=NULL,stat="BIC",cond=NULL,...
 ###################################
   condEdges <- NULL
   compType <- varType <- as.integer(numCat!=0)
+
   if (is.null(cond))
     comp <- 1:p
   else
   {
     k <- length(cond) #number of conditional sets
+    condJ <- cond
     ed <- matrix(integer(0),,2)
     if (k > 1)
     {
-      inter <- matrix(0,k,k) #matrix giving which sets are not disjoint
-      for (i in 1:(k-1))
-        for (j in (i+1):k)
-          inter[i,j] <- length(intersect(cond[[i]],cond[[j]]))>0
-      ed <- which(inter==1,arr.ind=T) #edges of a graph in which the nodes are de sets
-    }
-    if (nrow(ed) == 0)
-      condJ <- cond
-    else
-    {
-      compJ <- rep(0,k) #indicates which sets are in the same connected component in ed
-      i <- 1
-      while (min(compJ)==0)
-      {
-        aux <- DFS(edges=ed,v=i,p=k) #all nodes reachable from i
-        if (compJ[i] == 0)
-          compJ[c(i,aux)] <- max(compJ)+1
-        i <- i + 1
-      }
+      compJ <- comps(cond)
       condJ <- list() #the list of nodes in the original graph that are in the same connected component
       for (i in 1:max(compJ))
         condJ[[i]] <- sort(unique(unlist(cond[which(compJ==i)])))
-      #  forbEdges <- rbind(forbEdges,gClique(unlist(cond[which(compJ==i)])))
     }
-
     comp <- rep(0,p)
     for (i in 1:length(condJ))
     {
       comp[condJ[[i]]] <- max(comp)+1
       x <- unique(varType[condJ[[i]]])
       compType[condJ[[i]]] <- ifelse(length(x)==1,x,2)
-      forbEdges <- rbind(forbEdges,gClique(condJ[[i]]))
     }
     for (i in 1:length(cond))
       condEdges <- rbind(condEdges,gClique(cond[[i]]))
@@ -1380,6 +1370,8 @@ plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
     {
       xy <- list(x=cos(seq(0,2*pi,2*pi/25)),y=sin(seq(0,2*pi,2*pi/25)))
       symbol.vert <- symbol.vert[originalOrder]
+      if (!is.na(asp))
+        vert.radii <- vert.radii*ifelse(asp<1,1,asp)
       vert.radii <- vert.radii[originalOrder]
       border <- border[originalOrder]
       Fill <- rep("lightgray",length(varType))
@@ -1603,17 +1595,24 @@ shortPath <- function(model=NULL, edges=NULL, v=NULL, p=NULL)
     if (max(v)>p)
       stop(paste("v must be in [1,",p,"].",sep=""))
     storage.mode(v) <- "integer"
-    result <- .Call("shortPath",v1,v2,v,p,PACKAGE="gRapHD")
+    if (length(v1)==0)
+    {
+      result <- rep(p,p)
+      result[v] <- 0
+    }
+    else  
+      result <- .Call("shortPath",v1,v2,v,p,PACKAGE="gRapHD")
     names(result) <- 1:p
   }
   else
   {
-    result <- matrix(0,p,p)
-    for (v in 1:p)
+    if (length(v1)==0)
     {
-      storage.mode(v) <- "integer"
-      result[v,] <- .Call("shortPath",v1,v2,v,p,PACKAGE="gRapHD")
+      result <- matrix(p,p,p)
+      diag(result) <- 0
     }
+    else  
+      result <- .Call("spAll",v1,v2,p,PACKAGE="gRapHD")
   }
   result[result==p] <- Inf
   return(result)

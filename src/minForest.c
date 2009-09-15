@@ -446,8 +446,9 @@ static void bTree(struct nodeBT *curr, unsigned int *vert1, unsigned int *vert2,
 /******************************************************************************/
 //struct nodeBT* calc(SEXP dataset, SEXP varType, SEXP numCat, bool homog,
 //                    SEXP forbEdges, unsigned short stat, unsigned int *errors)
-struct nodeBT* calc(SEXP dataset, SEXP numCat, bool homog,
-                    SEXP forbEdges, unsigned short stat, unsigned int *errors)
+struct nodeBT* calc(SEXP dataset, SEXP numCat, bool homog,SEXP forbEdges, 
+                    unsigned short stat, unsigned int *errors, 
+                    unsigned int *comp)
 
 {
   unsigned int i, j, p, n, ii, k, N, iii, jjj, kkk, identical, idX, idY;
@@ -480,6 +481,8 @@ struct nodeBT* calc(SEXP dataset, SEXP numCat, bool homog,
   {
     for (j=(i+1);j<p;j++)
     {
+      if (comp[i+1]==comp[j+1]) 
+        continue;
       ind = whichSDsBT(forbEdges,(i-1+1)*p-(i-1+1)*(i+1)/2+(j+1)-(i+1),1,0,1);
       if (ind[0]==0)
       {
@@ -703,6 +706,10 @@ SEXP minForest(SEXP dataset, SEXP numCat, SEXP HOMOG,
   struct nodeBT *root = NULL;
   unsigned short stat;
   bool homog = INTEGER(HOMOG)[0];
+  unsigned int *comp; //to keep track of which connected component each vertex
+                      //belongs to
+  unsigned char *type; //to identify if the component is continuous (0),
+                       //discrete (1) or mixed (2)
 
   stat = INTEGER(STAT)[0];
   errors = (unsigned int *)calloc(1,sizeof(unsigned int));
@@ -710,9 +717,21 @@ SEXP minForest(SEXP dataset, SEXP numCat, SEXP HOMOG,
   n = length(dataset)/p; //number of observations
   N = p*(p-1)/2; //number of possible edges
 
+  comp = (unsigned int *)malloc((p+1)*sizeof(unsigned int));
+  comp[0] = p;
+  type = (unsigned char *)malloc((p+1)*sizeof(unsigned char));
+  type[0] = p;
+  for (i=1; i<=p; i++)
+  {
+    //comp[i] = i;
+    comp[i] = INTEGER(COMP)[i-1];
+    //type[i] = 1*(INTEGER(numCat)[i-1]!=0);
+    type[i] = INTEGER(COMPTYPE)[i-1];
+  }
+
   if (stat<3) //means LR, AIC, or BIC
 //    root = calc(dataset,varType,numCat,homog,forbEdges,stat,errors);
-    root = calc(dataset,numCat,homog,forbEdges,stat,errors);
+    root = calc(dataset,numCat,homog,forbEdges,stat,errors,comp);
   else
   {
     Nv = length(VALUES)/2;
@@ -726,11 +745,7 @@ SEXP minForest(SEXP dataset, SEXP numCat, SEXP HOMOG,
   // build a ordered array and free the tree
   ////////////////////////////////////////////
   unsigned int *vert1, *vert2;
-  unsigned int *comp; //to keep track of which connected component each vertex
-                      //belongs to
   double *LR;
-  unsigned char *type; //to identify if the component is continuous (0),
-                       //discrete (1) or mixed (2)
   unsigned short *numParam; //number of parameters
   SEXP tree; //the resulting tree or list of edges with problem in the marginal
   SEXP errorList;
@@ -745,17 +760,6 @@ SEXP minForest(SEXP dataset, SEXP numCat, SEXP HOMOG,
   numParam[0] = 0;
   LR = malloc(p*sizeof *LR);
   LR[0] = 0;
-  comp = (unsigned int *)malloc((p+1)*sizeof(unsigned int));
-  comp[0] = p;
-  type = (unsigned char *)malloc((p+1)*sizeof(unsigned char));
-  type[0] = p;
-  for (i=1; i<=p; i++)
-  {
-    //comp[i] = i;
-    comp[i] = INTEGER(COMP)[i-1];
-    //type[i] = 1*(INTEGER(numCat)[i-1]!=0);
-    type[i] = INTEGER(COMPTYPE)[i-1];
-  }
   i = errors[0];
   free(errors);
   errors = (unsigned int *)calloc(i+1,sizeof(unsigned int));
@@ -833,7 +837,7 @@ SEXP calcStat(SEXP dataset, SEXP numCat, SEXP HOMOG,
   struct nodeBT *root = NULL;
   unsigned short measure;
   bool homog = INTEGER(HOMOG)[0];
-  unsigned int *ind, *errors;
+  unsigned int *ind, *errors, *comp;
 
   measure = INTEGER(STAT)[0];
 
@@ -842,9 +846,14 @@ SEXP calcStat(SEXP dataset, SEXP numCat, SEXP HOMOG,
   N = p*(p-1)/2; //number of possible edges
   errors = (unsigned int *)calloc(1,sizeof(unsigned int));
 
+  comp = (unsigned int *)malloc((p+1)*sizeof(unsigned int));
+  comp[0] = p;
+  for (i=1; i<=p; i++)
+    comp[i] = i;
+
   if (measure<3) //means LR, AIC, or BIC
 //    root = calc(dataset,varType,numCat,homog,forbEdges,measure,errors);
-    root = calc(dataset,numCat,homog,forbEdges,measure,errors);
+    root = calc(dataset,numCat,homog,forbEdges,measure,errors,comp);
   else
   {
     Nv = length(VALUES)/2;
@@ -852,7 +861,7 @@ SEXP calcStat(SEXP dataset, SEXP numCat, SEXP HOMOG,
       if (!ISNA(REAL(VALUES)[i]))
         root = insertBT(root,REAL(VALUES)[i],i+1,REAL(VALUES)[Nv+i]);
   }
-
+  free(comp);
   i = errors[0];
   free(errors);
   errors = (unsigned int *)calloc(i+1,sizeof(unsigned int));
