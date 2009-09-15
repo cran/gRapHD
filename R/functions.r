@@ -2171,7 +2171,7 @@ as.gRapHD <- function(object,...)
         if (0%in%a)
         {
           warning("Self-loops removed.")
-          x <- x[-which(a==0),]
+          object <- object[-which(a==0),]
         }
         z0 <- (object[,1]-1)*p-(object[,1]-1)*object[,1]/2+object[,2]-object[,1]
         z1 <- unique(z0)
@@ -2621,18 +2621,18 @@ convertClass <- function(object)
     edges <- t(apply(edges,1,sort))
     edges <- unique(edges,MARGIN=1)
 
-    g1 <- as.gRapHD(edges,p=p)
+    g1 <- as.gRapHD(edges,p=p,vertNames=names(object@edgeL))
   }
   else
     if (class(object)=="gRapHD")
     {
       require(graph)
       edgeL <- vector("list",length=object$p)
-      names(edgeL) <- 1:object$p
+      names(edgeL) <- object$vertNames
       I <- adjMat(edges=object$edges,p=object$p)
       for (i in 1:object$p)
         edgeL[[i]] <- list(edges=(1:object$p)[I[i,]==1],weights=rep(1,sum(I[i,])))
-      g1 <- new("graphNEL", nodes=as.character(1:object$p), edgeL=edgeL, edgemode = "undirected")
+      g1 <- new("graphNEL", nodes=as.character(object$vertNames), edgeL=edgeL, edgemode = "undirected")
     }
     else
       stop("object must be of class graphNEL or gRapHD.")
