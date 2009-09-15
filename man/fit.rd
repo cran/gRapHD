@@ -6,7 +6,7 @@
 }
 
 \usage{
-  fit(model=NULL, edges=NULL, dataset, homog=TRUE)
+  fit(model=NULL, edges=NULL, dataset, homog=NULL)
 }
 
 \arguments{
@@ -15,7 +15,10 @@
                column one of the vertices in the edge.}
   \item{dataset}{matrix or data frame (\code{nrow(dataset)} observations and
                  \code{ncol(dataset)} variables).}
-  \item{homog}{\code{TRUE} if the mixed model is homogeneous.}
+  \item{homog}{only used in the mixed model case. \code{TRUE} if the model is 
+               homogeneous. The default is \code{NULL}, indicating that the
+               attribute \code{homog} of the \code{model} parameter must be
+               used (or \code{TRUE} if only \code{edges} is provided).}
 }
 
 \value{

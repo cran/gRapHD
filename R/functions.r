@@ -586,7 +586,7 @@ chStat <- function(model,dataset,previous=NULL,forbEdges=NULL)
 
               # because of join in findEd
               if (length(S)==0)
-                numP <- length(t12)-1
+                numP <- prod(model$numCat[clique]-1)#length(t12)-1
               else
                 numP <- sum(apply(t12,MARGIN=(1:length(clique))[-(1:2)],numbPar))
               ##
@@ -1276,28 +1276,14 @@ plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
   p <- length(vertices)
 
   # vertices radii
-  if (length(vert.radii)>1)
-  {
-    if (length(vert.radii)!=p)
-      stop("The vector with vertices radii must have length 1 or p.")
-  }
-  else
-    vert.radii <- rep(vert.radii,p)
+  vert.radii <- rep(vert.radii,length.out=p)
   # test if all vertices to be highlighted are in the graph
   if (sum(is.element(vert.hl,vertices))<length(vert.hl))
      stop("Only vertices plotted can be highlighted.")
   # colour of vertices' borders
-  if (length(border)==1)
-    border <- rep(border,p)
-  else
-    if (length(border)!=p)
-       stop("border must have length 1 or p.")
+  border <- rep(border,length.out=p)
   # shape of the vertices
-  if (length(symbol.vert)==1)
-    symbol.vert <- rep(symbol.vert,p)
-  else
-    if (length(symbol.vert)!=p)
-       stop("symbol.vert must have length 1 or p.")
+  symbol.vert <- rep(symbol.vert,length.out=p)
 
   # initialise vertices' coordenates
   if (!is.null(coord)) # if it is given by the user
@@ -1377,6 +1363,9 @@ plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
     if (!is.null(arg$xpd)) par(xpd=arg$xpd)
     rm(arg)
     coordE <- matrix(0,nrow(edges),4)
+    lty.ed <- rep(lty.ed,length.out=length(edgesL))
+    lwd.ed <- rep(lwd.ed,length.out=length(edgesL))
+    col.ed <- rep(col.ed,length.out=length(edgesL))
     if ((plotEdges) & (length(edgesL)>0))
       for (i in 1:nrow(edgesL))
       {
@@ -1384,7 +1373,7 @@ plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
         coordE[i,3:4] <- c(coordV[edgesL[i,1],2],coordV[edgesL[i,2],2])
         lines(x=coordE[i,1:2],
               y=coordE[i,3:4],
-              col=col.ed,lty=lty.ed,lwd=lwd.ed)#col="darkgray",lty=1,lwd=1)
+              col=col.ed[i],lty=lty.ed[i],lwd=lwd.ed[i])#col="darkgray",lty=1,lwd=1)
       }
 
     if (plotVert)
@@ -1436,8 +1425,8 @@ plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
              cex = cex.vert.label, col = Fill, font = font)
       else
         text(x = coordV[, 1], y = coordV[, 2], model$vertNames[vertices],
-             cex = cex.vert.label, col = Fill, font = font)    }
-
+             cex = cex.vert.label, col = Fill, font = font)    
+    }
     if (!is.null(main))
       title(main=main)
     par(mar=save.mar,oma=save.oma,xpd=FALSE)
@@ -1690,7 +1679,7 @@ convData <- function(dataset)
 #     homog = T of F
 # Out: number of parameters, -2*logL, BIC, AIC
 ################################################################################
-fit <- function(model=NULL,edges=NULL,dataset,homog=TRUE)
+fit <- function(model=NULL,edges=NULL,dataset,homog=NULL)
 {
   if (is.null(edges) && is.null(model))
     stop("Edges or model must be provided.")
@@ -1702,8 +1691,10 @@ fit <- function(model=NULL,edges=NULL,dataset,homog=TRUE)
   if (is.null(edges))
   {
     edges <- model$edges
-    homog <- model$homog
+    homog <- ifelse(is.null(homog),model$homog,homog)
   }
+  else
+    homog <- ifelse(is.null(homog),TRUE,homog)
 
   aux <- convData(dataset)
   dataset <- aux$ds
@@ -1885,9 +1876,9 @@ fit <- function(model=NULL,edges=NULL,dataset,homog=TRUE)
       model$edges <- edges
       model$varType <- varType
       model$numCat <- numCat
-      model$homog <- homog
       class(model) <- "gRapHD"
     }
+    model$homog <- homog
     numP <- modelDim(model)
   }
   result <- c(numP,-2*L,-2*L+2*numP,-2*L+numP*log(nrow(dataset)))
@@ -2165,17 +2156,32 @@ as.gRapHD <- function(object,...)
 {
   arg <- list(...)
   result <- list()
-  n <- 0
-  p <- 0
+  n <- 0 # number of edges
+  p <- 0 # number of vertices
   if (is.null(object))
-    object <- matrix(integer(0),,2)
+    object <- matrix(integer(0),,2) # empty list of edges
   else
-    if (NCOL(object)==2)
+    if (NCOL(object)==2) # matrix of edges
     {
       n <- NROW(object)
       p <- ifelse(n==0,0,max(object))
       if (n>0)
-        object <- t(apply(object,1,sort))
+      {
+        a <- object[,1]-object[,2] 
+        object[a>0,] <- cbind(object[a>0,2],object[a>0,1]) # sort rows
+        if (0%in%a)
+        {
+          warning("Self-loops removed.")
+          x <- x[-which(a==0),]
+        }
+        z0 <- (object[,1]-1)*p-(object[,1]-1)*object[,1]/2+object[,2]-object[,1]
+        z1 <- unique(z0)
+        if (length(z1)<n) # there are multiple edges
+        {
+          warning("Multiple edges removed.")
+          object <- object[match(z1,z0),]
+        }
+      }
       n <- min(c(n,1))
     }
     else
@@ -2366,7 +2372,7 @@ CI.test <- function(x,y,S,dataset,homog=TRUE)
       t2 <- margin.table(t12,match(clique2,clique))
       tS <- if(length(S)==0) 0 else margin.table(t12,match(S,clique))
       if (length(S)==0)
-        numP <- length(t12)-1
+        numP <- prod(numCat[clique]-1)#length(t12)-1
       else
         numP <- sum(apply(t12,MARGIN=(1:length(clique))[-(1:2)],numbPar))
       numObsUsed <- sum(t12)
