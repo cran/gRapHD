@@ -4,7 +4,7 @@ export(minForest,calcStat,chStat,DFS,findEd,neighbours,MCS,perfSets,randTree,
        stepw,rowProds,sortMat,SubGraph,neighbourhood,adjMat,Degree,
        shortPath,convData,fit,modelFormula,modelDim,jTree,ccoeff,
        summary.gRapHD,print.gRapHD,show.gRapHD,plot.gRapHD,CI.test,
-       matrix.gRapHD,gRapHD.graphNEL,graphNEL.gRapHD,initialize.gRapHD)
+       matrix.gRapHD,gRapHD.graphNEL,graphNEL.gRapHD,initialize.gRapHD,stepb)
 
 #importFrom(methods,is,as)
 

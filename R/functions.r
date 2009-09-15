@@ -1253,7 +1253,8 @@ plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
     originalOrder <- order(vert)
     vertices <- sort(vert)
 #
-    edges <- SubGraph(edges=edges,v=vertices,p=max(edges))@edges
+    edges <- SubGraph(edges=edges,v=vertices,p=max(c(max(edges),vertices)))@edges
+    #edges <- SubGraph(edges=edges,v=vertices,p=max(edges))@edges
 #
     edges[,1] <- vertices[edges[,1]]
     edges[,2] <- vertices[edges[,2]]
@@ -1745,7 +1746,7 @@ fit <- function(model=NULL,edges=NULL,dataset,homog=NULL)
     {
       m <- colMeans(ds)
       covm <- var(ds)*(n-1)/n
-      L <- L + sum(normDens(ds,m,covm,log=TRUE))
+      L <- L + sum(normDens(ds,m,covm,logx=TRUE))
       numP <- numP + length(continuous)*(length(continuous)+3)/2
     }
     else
@@ -1775,7 +1776,7 @@ fit <- function(model=NULL,edges=NULL,dataset,homog=NULL)
             {
               ind <- apply(matrix(dataset[,discrete],,length(discrete)),1,whichSeq,y=seqLevels(j,numCat[discrete]))
               m <- colMeans(matrix(ds[ind,],,length(continuous)))
-              L <- L + sum(normDens(ds[ind,],m,covm,log=TRUE)) + tc[j]*log(tc[j]/sum(tc))
+              L <- L + sum(normDens(ds[ind,],m,covm,logx=TRUE)) + tc[j]*log(tc[j]/sum(tc))
               numP <- numP + 1 + length(continuous)
             }
           numP <- numP + length(continuous)*(length(continuous)+1)/2
@@ -1791,7 +1792,7 @@ fit <- function(model=NULL,edges=NULL,dataset,homog=NULL)
               ind <- apply(matrix(dataset[,discrete],,length(discrete)),1,whichSeq,y=seqLevels(j,numCat[discrete]))
               covm <- var(ds[ind,])*(tc[j]-1)/tc[j]
               m <- colMeans(matrix(ds[ind,],,length(continuous)))
-              L <- L + sum(normDens(ds[ind,],m,covm,log=TRUE)) + tc[j]*log(tc[j]/sum(tc))
+              L <- L + sum(normDens(ds[ind,],m,covm,logx=TRUE)) + tc[j]*log(tc[j]/sum(tc))
               numP <- numP + length(continuous)*(length(continuous)+3)/2 + 1
             }
         }
@@ -1808,7 +1809,7 @@ fit <- function(model=NULL,edges=NULL,dataset,homog=NULL)
       {
         m <- colMeans(ds)
         covm <- var(ds)*(n-1)/n
-        L <- L - sum(normDens(ds,m,covm,log=TRUE))
+        L <- L - sum(normDens(ds,m,covm,logx=TRUE))
         numP <- numP - length(continuous)*(length(continuous)+3)/2
       }
       else
@@ -1838,7 +1839,7 @@ fit <- function(model=NULL,edges=NULL,dataset,homog=NULL)
               {
                 ind <- apply(matrix(dataset[,discrete],,length(discrete)),1,whichSeq,y=seqLevels(j,numCat[discrete]))
                 m <- colMeans(matrix(ds[ind,],,length(continuous)))
-                L <- L - sum(normDens(ds[ind,],m,covm,log=TRUE)) - tc[j]*log(tc[j]/sum(tc))
+                L <- L - sum(normDens(ds[ind,],m,covm,logx=TRUE)) - tc[j]*log(tc[j]/sum(tc))
                 numP <- numP - 1 - length(continuous)
               }
             numP <- numP - length(continuous)*(length(continuous)+1)/2
@@ -1854,7 +1855,7 @@ fit <- function(model=NULL,edges=NULL,dataset,homog=NULL)
                 ind <- apply(matrix(dataset[,discrete],,length(discrete)),1,whichSeq,y=seqLevels(j,numCat[discrete]))
                 covm <- var(ds[ind,])*(tc[j]-1)/tc[j]
                 m <- colMeans(matrix(ds[ind,],,length(continuous)))
-                L <- L - sum(normDens(ds[ind,],m,covm,log=TRUE)) - tc[j]*log(tc[j]/sum(tc))
+                L <- L - sum(normDens(ds[ind,],m,covm,logx=TRUE)) - tc[j]*log(tc[j]/sum(tc))
                 numP <- numP - length(continuous)*(length(continuous)+3)/2 - 1
               }
           }
@@ -2560,5 +2561,179 @@ graphNEL.gRapHD <- function(from)
 
   g1 <- new("gRapHD",edges=edges,p=p,vertNames=names(from@edgeL))
   return(g1)
+}
+################################################################################
+
+################################################################################
+# Function for backwards selection for decomposable models based on BIC or AIC.
+# Assumes G is a gRapHD object and is strongly decomposable. D is a dataframe
+# containing the data. fixed.edges is a boolean vector of length G@edges, when
+# TRUE the edge is not considered for removal.
+# For pure models, an edge (i,j) is eligible for deletion iff S(i,j)=adj(i) cap
+# adj(j) is complete in G.
+# For mixed models also need that if i and j are discrete, S(i,j) is all
+# discrete
+# When a delete-eligible edge (i,j) is deleted,
+#  (i) for all edges (u,v) in S(i,j), S(u,v) becomes incomplete
+#  (ii) for all edges (i,s) and (j,s) with s in S(i,j), S(i,s) and S(j,s) change
+#       and must be recalculated
+#  (iii) all other edges are unaffected.
+################################################################################
+stepb <- function(G, dataset, fixed.edges=NULL, stat="BIC") {
+ test.del <- function(i, j, G) {
+   S.complete <- FALSE; result <- NA; S <- NULL
+   S <- intersect(neighbours(edges=G@edges, v=i), neighbours(edges=G@edges, v=j))
+   if (length(S)==0) {S.complete<-TRUE; SD.condition<-TRUE} else {
+     S.complete <- sum((G@edges[,1] %in% S) & (G@edges[,2] %in% S))== (length(S)*(length(S)-1)/2)
+     SD.condition <- (min(G@numCat[c(i,j)])==0) | (min(G@numCat[S])>0) }
+   valid <- S.complete & SD.condition
+   if (valid) result <- unlist(nCI.test(i,j,S,dataset))
+   return(list(ok=valid, result=result, S=S))
+ }
+ oneslice.deviance <- function(t,d1,d2) {
+      dim(t) <- c(d1,d2); t1 <- addmargins(t)
+      cm <- t1[d1+1,1:d2]; rm <- t1[1:d1,d2+1]; N<- t1[d1+1,d2+1]
+      df <- (sum(cm>0)-1)*(sum(rm>0)-1)
+      G2 <- 0
+      if (df>0) {fv <- (rm %o% cm)/N; G2 <- 2*sum(t*log(t/fv), na.rm=T)}
+      return(c(df=df, G2=G2))
+  }
+  cen.cov <- function(vset, dset=NULL, dataset) {
+    N <- dim(dataset)[1]
+    lv <- length(vset)
+    if (is.null(dset)) S <- var(dataset[,vset])*(N-1)/N else {
+    sds <- split(dataset[,vset], dataset[,dset], drop=T)
+    covs <- sapply(sds, var)
+    if (lv>1) {dims <- sapply(sds, dim)[1,]; covs1 <- covs[,dims>1]}
+       else   {dims <- sapply(sds, length); covs1 <- covs[dims>1]}
+    dims1 <- dims[dims>1]
+    if (length(dims1)>1) S <- (covs1 %*% (dims1-1))/N else S <- covs1*(dims1-1)/N }
+    dim(S) <- c(lv,lv)
+    return(S)
+  }
+  ld <- function(S, x) {
+    lds <- 0
+    if (length(x)==1) lds <- log(S[x,x])
+    if (length(x)>1) lds <- log(ndet(S[x,x]))
+    return(lds)
+  }
+  # determinant function, trapping almost singular matrices. Using condition number would be better.
+  ndet <- function(S) {x <- det(S); if (x<.Machine$double.eps) x<-0; x}
+nCI.test <- function(c1,c2,S=integer(0),dataset) {
+   V <- union(union(c1,c2),S)
+   N <- nrow(dataset)
+   isf <- sapply(dataset[,V], is.factor)
+   isd <- c(is.factor(dataset[,c1]), is.factor(dataset[,c2]))
+   type <- 'mixed';
+   if (all(isd)) type<- 'discrete' else if (all(!isd)) type <- 'cont'
+   if (type=='discrete') {
+     if (any (S %in% V[!isf])) stop("if c1 and c2 are discrete S must also be discrete")
+     d1 <- nlevels(dataset[,c1])
+     d2 <- nlevels(dataset[,c2])
+     ds <- dataset[,c(c1,c2,S)]
+     if (length(S)==0) {
+       m <- ftable(ds, col.vars=2:1)
+       ans <- oneslice.deviance(m, d1, d2)
+       df <- as.integer(ans[1])
+       dev <- ans[2]
+     } else {
+       m <- ftable(ds, col.vars=2:1, row.vars=3:(length(S)+2))
+       m1 <- m[rowSums(m)>1,]
+       if (class(m1)=='integer') dim(m1) <- c(length(m1)/(d1*d2), d1*d2)
+       ans <- apply(m1, 1, oneslice.deviance, d1, d2)
+       df <- as.integer(sum(ans[1,]))
+       dev <- sum(ans[2,])}
+   } else if (type=='mixed') {
+       Delta <- V[isf]
+       Gamma <- setdiff(V, Delta)
+       q <- length(Gamma)
+       X <- setdiff(Gamma, union(c1,c2))
+       K <- setdiff(Delta, union(c1,c2))
+       if (length(K)==0) K <- NULL
+       S.ik <- cen.cov(Gamma, Delta, dataset)
+       S.k  <- cen.cov(Gamma, K, dataset)
+       mX <- match(X, Gamma)
+       ldS.ik <- log(ndet(S.ik))
+       ldS.k <- log(ndet(S.k))
+       ldSik.mX <- ld(S.ik, mX)
+       ldSk.mX <- ld(S.k, mX)
+       dev <- - N*(ldS.ik - ldSik.mX - ldS.k + ldSk.mX)
+       if (is.factor(dataset[,c2])) {c.tmp <- c1; c1 <- c2; c2 <- c.tmp}
+       p1 <- length(K); p <- length(X)
+       if (p1>0) {
+          m <- ftable(dataset[,c(c1,K)], col.vars=1, row.vars=2:(p1+1))
+         if (G@homog) {m1 <- m[rowSums(m)>0,] ; df <- sum(rowSums(m1>0)-1)} else
+         {m1 <- m[rowSums(m)>p+1,];  df <- sum(rowSums(m1>p+1)-1 +(p+1)*(rowSums(m1>p)-1)) }
+       } else {
+         m <- ftable(dataset[,c1], col.vars=1)
+         if (G@homog) {df <- rowSums(m>0)-1} else
+         {df <- rowSums(m>p+1)-1 +(p+1)*(rowSums(m>p)-1) }
+       }
+   } else {  #type==cont
+       K <- V[isf]
+       Q0 <- setdiff(S, K)
+       Q <- setdiff(V, K)
+       if (length(K)==0) K <- NULL
+       S.full  <- cen.cov(Q, K, dataset)
+       red1 <- match(union(Q0,c1), Q)
+       red2 <- match(union(Q0,c2), Q)
+       int <- match(Q0, Q)
+       ldS.full <- log(ndet(S.full))
+       ldS.red1 <- ld(S.full, red1)
+       ldS.red2 <- ld(S.full, red2)
+       ldS.int <- ld(S.full, int)
+       dev <- - N*(ldS.full - ldS.red1 - ldS.red2 + ldS.int)
+       df <- 1
+       if (!G@homog) {
+         Sd <- c(); p <- 0;
+         if (!is.null(S)) {Sd <- S[sapply(dataset[,S], is.factor)]; p <- length(setdiff(S, Sd))}
+         p1 <- length(Sd)
+         if (p1>0) {t <- table(dataset[,Sd]); df <- sum(t>p+1)}}
+   }
+   return(list(deviance=dev, df=df))
+}
+ # Now we start stepb as such
+
+ if (class(G) != "gRapHD") stop("G is not of class gRapHD.")
+ if (class(dataset) != "data.frame") stop("dataset is not a data.frame.")
+ if (G@p != ncol(dataset)) stop("G and dataset are inconsistent.")
+ if (any(G@numCat != sapply(dataset,nlevels))) stop("G and dataset are inconsistent.")
+ if (stat=="AIC") penalty <- 2 else penalty <- log(nrow(dataset))
+ if (!is.null(fixed.edges)) {
+   if (!((class(fixed.edges) == "logical") && (length(fixed.edges) == nrow(G@edges)))) stop("fixed.edges incorrectly specified.") }
+ # et is a table with available edges, whether currently delete-eligible, and if so BIC or AIC statistics
+ et <- data.frame(G@edges)
+ names(et) <- c('i','j')
+ et$eligible <- NA
+ et$BIC <- NA
+ if (!is.null(fixed.edges)) et <- et[!fixed.edges,]
+ for (i in 1:nrow(et)) {
+   tt <- test.del(et[i,1], et[i,2], G)
+   et[i,3] <- tt$ok
+   if (et[i,3]) et[i,4] <- tt$result[1] - penalty*tt$result[2]
+ }
+ k <- which.min(et[,4])
+ while (et[k,4] < 0) {
+   i <- et[k,1]; j <- et[k,2]
+   tt <- test.del(i, j, G)
+   S <- tt$S
+   # remove edge
+   kk <- which((G@edges[,1]==i) & (G@edges[,2]==j))
+   G@edges <- G@edges[-kk,]
+   # update et as necessary
+   et[k,4] <- NA
+   SS <- c(i,j,S)
+   update.indices <- setdiff(which((et[,1] %in% SS) & (et[,2] %in% SS)),k)
+   for (kk in update.indices) {
+     if ((et[kk,1] %in% S) & (et[kk,2] %in% S)) {et[kk,3] <- FALSE; et[kk,4] <- NA} else {
+        tt <- test.del(et[kk,1], et[kk,2], G)
+        et[kk,3] <- tt$ok
+        if (et[kk,3]) et[kk,4] <- tt$result[1] - penalty*tt$result[2] else
+            et[kk,4] <- NA
+     }
+   }
+   k <- which.min(et[,4])
+ }
+ return(G)
 }
 ################################################################################
