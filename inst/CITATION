@@ -1,0 +1,20 @@
+citHeader("To cite package 'gRapHD' in publications use:")
+
+     desc <- packageDescription("gRapHD")
+     year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", desc$Date)
+     vers <- paste("R package version", desc$Version)
+
+     citEntry(entry="article",
+              title = "High-dimensional Graphical Model Search with gRapHD R Package",
+              author = personList(as.person("Gabriel C. G. de Abreu"),
+                                  as.person("Rodrigo Labouriau"),
+                                  as.person("David Edwards")),
+              journal = "arXiv",
+              year = 2009,
+              note = "arXiv:0909.1234v2",
+
+              textVersion =
+              paste("Gabriel C. G. de Abreu, Rodrigo Labouriau, David Edwards,",
+                    " (",2009,"). ",
+                    "High-dimensional Graphical Model Search with gRapHD R Package. ",
+                    "arXiv:0909.1234v2", ".", sep=""))

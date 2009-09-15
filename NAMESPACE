@@ -1,0 +1,13 @@
+useDynLib(gRapHD)
+
+export(minForest,calcStat,chStat,DFS,findEd,neighbours,MCS,perfSets,randTree,
+       stepw,rowProds,sortMat,plotG,SubGraph,neighbourhood,adjMat,Degree,
+       shortPath,convData,fit,modelFormula,modelDim,jTree,ccoeff,
+       summary.gRapHD,print.gRapHD,is.gRapHD,as.gRapHD,
+       CI.test,convertClass)
+importFrom(methods,is,as)
+       
+S3method(summary, gRapHD)
+S3method(print, gRapHD)
+S3method(is, gRapHD)
+S3method(as, gRapHD)
