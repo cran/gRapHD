@@ -1,6 +1,6 @@
 \name{summary.gRapHD}
 \alias{summary.gRapHD}
-\title{Summarizing model.}
+\title{Summarizes model.}
 \description{
   \code{\link{Methods}} for class \code{gRapHD}.
 }

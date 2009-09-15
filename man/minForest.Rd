@@ -2,7 +2,8 @@
 \alias{minForest}
 \title{Minimum forest}
 \description{
-  Returns the forest that minimises the -2*log-likelihood, AIC, or BIC.
+  Returns the forest that minimises the -2*log-likelihood, AIC, or BIC using 
+Chow-Liu lgorithm.
 }
 
 \usage{
@@ -15,16 +16,17 @@
   \item{homog}{\code{TRUE} for homogeneous covariance structure, \code{FALSE}
                for heterogeneous. This is only meaningful with mixed models.
                Default is homogeneous (\code{TRUE}).}
-  \item{forbEdges}{list with edges that should not be considered. Matrix with 2
-                   columns, each row representing one edge, and each column one
-                   of the vertices in the edge. Default is \code{NULL}.}
+  \item{forbEdges}{matrix specifying edges that should not be considered. Matrix 
+                   with 2 columns, each row representing one edge, and each 
+                   column one of the vertices in the edge. Default is 
+                   \code{NULL}.}
   \item{stat}{measure to be minimized: LR (-2*log-likelihood), AIC, or BIC.
               Default is BIC. It can also be a user
               defined function with format: \code{FUN(newEdge,varType,numCat,
               dataset)}; where the parameters \code{varType} and \code{numCat}
               are as defined in the Value section; \code{newEdge} is a vector
               with length two; and \code{dataset} is a matrix (n by p).}
-  \item{cond}{list with complete sets.}
+  \item{cond}{list with complete sets of vertices, to specify mandatory edges.}
   \item{...}{arguments to be passed to the user function in \code{stat}.}
 }
 
@@ -65,9 +67,9 @@ David Edwards (\email{David.Edwards@agrsci.dk})
 Chow, C.K. and Liu, C.N. (1968) Approximating discrete probability distributions
 with dependence trees. \emph{IEEE Transactions on Information Theory},
 Vol. IT-14, 3:462-7. \cr
-Edwards, D., de Abreu, G.C.G. and Labouriau, R. (2009). High-dimensional Mixed
-Graphical Models Using Minimal AIC and BIC forests. \emph{BMC Bioinformatics}.
-(submitted).
+Edwards, D., de Abreu, G.C.G. and Labouriau, R. (2010). Selecting high-
+dimensional mixed graphical models using minimal AIC or BIC forests. 
+\emph{BMC Bioinformatics}, 11:18.
 }
 
 \examples{
@@ -121,6 +123,15 @@ Graphical Models Using Minimal AIC and BIC forests. \emph{BMC Bioinformatics}.
   m <- minForest(dsCont,stat="LR")
   m1 <- minForest(dsCont,stat=userFun)
   identical(m$edges,m1$edges)
+
+  ##############################################################################
+  # Example with mandatory edges (the so-called conditional Chow-Liu algorithm). 
+  # The edges (1,2), (1,3) and (2,3) are specified as mandatory. The algorithm 
+  # returns the optimal graph containing the mandatory edges such that only 
+  # cycles with mandatory edges are allowed.
+  data(dsCont)
+  m1 <- minForest(dsCont,cond=list(1:3))
+  \dontrun{plot(m1)}  
 
 }
 \keyword{graphs}

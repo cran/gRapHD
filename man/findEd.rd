@@ -1,8 +1,9 @@
 \name{findEd}
 \alias{findEd}
-\title{Internal use}
+\title{Find add-eligible edges }
 \description{
-  Find all add-eligible edges for a given triangulated graph.
+  Find the edges that can be added to a (strongly) triangulated graph such that 
+the result is also (strongly) triangulated.
 }
 
 \usage{

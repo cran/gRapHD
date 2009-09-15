@@ -33,7 +33,7 @@
 struct nodeBT
 {
   double value; //LR for this edge
-  int edge; //edge as the index in Combination(p,2)
+  unsigned int edge; //edge as the index in Combination(p,2)
             //e.g., Combination(4,2): index | vert1 | vert2
             //                            1 |     1 |     2
             //                            2 |     1 |     3
@@ -105,7 +105,7 @@ static double Round(double x, unsigned char places)
 /******************************************************************************/
 // Creates a new node, with the parameters.
 // In: v - double, the LR for the edge
-//     edge - int, index of the edge
+//     edge - unsigned int, index of the edge
 // Out: pointer to the new node
 /******************************************************************************/
 struct nodeBT* NewNodeBT(double v, unsigned int edge, unsigned int numP)
@@ -124,7 +124,7 @@ struct nodeBT* NewNodeBT(double v, unsigned int edge, unsigned int numP)
 // recursive function.
 // In: node - pointer to nodeBT, previous checked node (root for a subtree)
 //     v - double, LR for the edge
-//     edge - int, index of the edge
+//     edge - unsigned int, index of the edge
 // Out: pointer to nodeBT (if found the place, the new node, otherwise, the
 //      next nde tha has to be tested).
 /******************************************************************************/
@@ -147,7 +147,7 @@ static struct nodeBT* insertBT(struct nodeBT* node, double v, unsigned int edge,
 
 /******************************************************************************/
 // Given a index in a Combination(n,2), returns the 2 elements.
-// In: x - int, the index
+// In: x - unsigned int, the index
 //     n - int, number of elements
 // Out: pointer to int vector of 2 ([0] = vertex 1; [1] = vertex 2)
 /******************************************************************************/
@@ -194,13 +194,14 @@ static unsigned int *getVertBT(unsigned int x, unsigned int n)
 // equal (s=0) k. But what is received is a SEXP to the dataset, and the values
 // are searched in one column of the dataset, and is returned the row indexes.
 // In: d - SEXP
-//     k - int, the element of interest
-//     s - int, if equal (1) or not equal (0)
-//     c - int, column index (as a matrix, and not as a vector in the memory)
-//         from 1 to ncol
-//     ncol - int, number of columns in the matrix
-// Out: pointer to an array of int with the indexes in d. If none was found,
-//      then arr[0]=0, otherwise arr[0] has the number of elements in arr.
+//     k - unsigned int, the element of interest
+//     equal - bool, if equal (true) or not equal (false)
+//     c - unsigned int, column index (as a matrix, and not as a vector in the
+//         memory) from 1 to ncol
+//     ncol - unsigned int, number of columns in the matrix
+// Out: pointer to an array of unsigned int with the indexes in d. If none was
+//      found, then arr[0]=0, otherwise arr[0] has the number of elements in
+//      arr.
 /******************************************************************************/
 static unsigned int *whichSDsBT(SEXP d, unsigned int k, bool equal,
                                 unsigned int c, unsigned int ncol)
@@ -235,10 +236,10 @@ static unsigned int *whichSDsBT(SEXP d, unsigned int k, bool equal,
 }
 
 /******************************************************************************/
-// Like R's "c". Binds 2 vectors of int - c(A,B)
-// In: A - pointer to a int vector
-//     B - pointer to a int vector
-// Out: pointer to a int vector with A[0]+B[0]+1 elements.
+// Like R's "c". Binds 2 vectors of unsigned int - c(A,B)
+// In: A - pointer to a unsigned int vector
+//     B - pointer to a unsigned int vector
+// Out: pointer to a unsigned int vector with A[0]+B[0]+1 elements.
 /******************************************************************************/
 static unsigned int *bindBT(unsigned int *A, unsigned int *B)
 {
@@ -257,10 +258,11 @@ static unsigned int *bindBT(unsigned int *A, unsigned int *B)
 // Vectorise the binary tree of LR values, releasing the nodes. Recursive.
 // In: curr - pointer to nodeBT
 //     stat - pointer to double vector, will contain the sorted (decreasing) LR
-//     edges - pointer to int, will contain the respective egdes indexes
+//     edges - pointer to unsigned int, will contain the respective egdes
+//             indexes
 // Out: none (it updates the two vectors in "In")
 /******************************************************************************/
-static void vecBT(struct nodeBT *curr, double *stat, int *edges,
+static void vecBT(struct nodeBT *curr, double *stat, unsigned int *edges,
                   unsigned short *numP, unsigned int *errors)
 {
   if (curr == NULL) return; //reached the end of a branch
@@ -288,9 +290,9 @@ static void vecBT(struct nodeBT *curr, double *stat, int *edges,
 // edges with problems is build. Also free the memory.
 // Recursive.
 // In: curr - pointer to nodeBT
-//     vert1 - pointer to int, will contain the first vertex of the edge
-//     vert2 - pointer to int, will contain the second vertex of the edge
-//     p - int, number of vertices
+//     vert1 - pointer to unsigned int, contains the first vertex of the edge
+//     vert2 - pointer to unsigned int, contains the second vertex of the edge
+//     p - unsigned int, number of vertices
 // Out: none (it updates the three vectors in "In")
 /******************************************************************************/
 static void errorEdges(struct nodeBT *curr, unsigned int *vert1,
@@ -335,20 +337,19 @@ static void cleanMem(struct nodeBT *root)
 // Build the real tree, based on the LR calculated, and release the nodes.
 // Recursive.
 // In: curr - pointer to nodeBT
-//     vert1 - pointer to int, will contain the first vertex of the edge
-//     vert2 - pointer to int, will contain the second vertex of the edge
+//     vert1 - pointer to unsigned int, contains the first vertex of the edge
+//     vert2 - pointer to unsigned int, contains the second vertex of the edge
 //     LR - pointer to double vector, will contain the respective LR
-//     p - int, number of vertices
-//     comp - pointer int, indicates in which component the vertex is
-//     type - pointer int, if the component is continuous (0), discrete (1), or
-//            mixed (2)
+//     p - unsigned int, number of vertices
+//     comp - pointer unsigned int, indicates in which component the vertex is
+//     type - pointer unsigned char, if the component is continuous (0),
+//            discrete (1), or mixed (2)
 //     varType - pointer SEXP, type of each variable
 //     numP - pointer unsigned short, number of parameters in the edge
 // Out: none (it updates the three vectors in "In")
 /******************************************************************************/
 static void bTree(struct nodeBT *curr, unsigned int *vert1, unsigned int *vert2,
                   double *LR, unsigned int p, unsigned int *comp,
-//                  unsigned char *type, SEXP varType, unsigned short *numP,
                   unsigned char *type, SEXP numCat, unsigned short *numP,
                   unsigned int *errors)
 {
@@ -864,11 +865,11 @@ SEXP calcStat(SEXP dataset, SEXP numCat, SEXP HOMOG,
   PROTECT(stat = allocMatrix(REALSXP, N, 4));
   numPr++;
   double *v;
-  int *edges;
+  unsigned int *edges;
   unsigned short *numParam;
   k = 1;
   v = (double *)malloc((N+1)*sizeof(double));
-  edges = (int *)malloc((N+1)*sizeof(int));
+  edges = (unsigned int *)malloc((N+1)*sizeof(unsigned int));
   numParam = (unsigned short *)malloc((N+1)*sizeof(unsigned short));
   v[0] = 0;
   edges[0] = 0;

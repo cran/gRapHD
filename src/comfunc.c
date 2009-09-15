@@ -32,9 +32,9 @@
 //
 // Like R's "which", returns the indexes in d for elements equal (s=1) or not
 // equal (s=0) k.
-// In: d - pointer to int vector
-//     k - int, the element of interest
-//     s - int, if equal (1) or not equal (0)
+// In: d - pointer to unsigned int vector
+//     k - unsigned int, the element of interest
+//     equal - bool, if equal (true) or not equal (false)
 // Out: pointer to an array of int with the indexes in d. If none was found,
 //      then arr[0]=0, otherwise arr[0] has the number of elements in arr.
 /******************************************************************************/
@@ -49,18 +49,14 @@ unsigned int *which(unsigned int *d, unsigned int k, bool equal)
   if (equal)
     for (i=1; i<=d[0]; i++) //tests all elements in d
     {
-      if (d[i]==k) //looking for something equal
-        arr[j++] = i;
+      if (d[i]==k) arr[j++] = i; //looking for something equal
     }
   else
     for (i=1; i<=d[0]; i++) //tests all elements in d
-      if (d[i]!=k) //looking for something equal
-        arr[j++] = i;
-
+      if (d[i]!=k) arr[j++] = i; //looking for something equal
   arr[0] = j-1; //as j starts in 1
   result = (unsigned int *)malloc(j*sizeof(unsigned int)); //precise lenght
-  for (i=0;i<=arr[0];i++)
-    result[i] = arr[i];
+  for (i=0;i<=arr[0];i++) result[i] = arr[i];
   free(arr);
 
   return(result);
@@ -72,8 +68,8 @@ unsigned int *which(unsigned int *d, unsigned int k, bool equal)
 // Like R's "which", returns the indexes in d for elements equal (s=1) or not
 // equal (s=0) k.
 // In: d - pointer SEXP (numeric)
-//     k - int, the element of interest
-//     s - int, if equal (1) or not equal (0)
+//     k - unsigned int, the element of interest
+//     equal - bool, if equal (true) or not equal (false)
 // Out: pointer to an array of int with the indexes in d. If none was found,
 //      then arr[0]=0, otherwise arr[0] has the number of elements in arr.
 /******************************************************************************/
@@ -89,18 +85,15 @@ unsigned int *whichS(SEXP d, unsigned int k, bool equal)
   if (equal)
     for (i=0; i<p; i++) //tests all elements in d
     {
-      if (INTEGER(d)[i]==k) //looking for something equal
-        arr[j++] = i;
+      if (INTEGER(d)[i]==k) arr[j++] = i;//looking for something equal
     }
   else
     for (i=0; i<p; i++) //tests all elements in d
-      if (INTEGER(d)[i]!=k) //looking for something equal
-        arr[j++] = i;
+      if (INTEGER(d)[i]!=k) arr[j++] = i;//looking for something equal
 
   arr[0] = j-1; //as starts in 1
   result = (unsigned int *)malloc(j*sizeof(unsigned int)); //precise lenght
-  for (i=0;i<=arr[0];i++)
-    result[i] = arr[i];
+  for (i=0;i<=arr[0];i++) result[i] = arr[i];
   free(arr);
 
   return(result);
@@ -110,13 +103,12 @@ unsigned int *whichS(SEXP d, unsigned int k, bool equal)
 // called from: mcs.c; findEd.c; dfs.c
 //
 // Find the neighbours of a vertex.
-// In: v1 - pointer SEXP (double, but considered int), with the first vertex of
-//          the edge
-//     v2 - pointer SEXP (double, but considered int), with the second vertex of
-//          the edge
-//     v  - int, the vertex which neighbours are required
-//     p  - int, total number of vertices
-// Out: pointer to int vector with the neighbours (vec[0]=number of elements).
+// In: v1 - pointer SEXP (int), with the first vertex of the edge
+//     v2 - pointer SEXP (int), with the second vertex of the edge
+//     v  - unsigned int, the vertex which neighbours are required
+//     p  - unsigned int, total number of vertices
+// Out: pointer to unsigned int vector with the neighbours (vec[0]=number of
+//      elements).
 /******************************************************************************/
 unsigned int *findNeigh(SEXP v1, SEXP v2, unsigned int v, unsigned int p)
 {
@@ -148,8 +140,8 @@ unsigned int *findNeigh(SEXP v1, SEXP v2, unsigned int v, unsigned int p)
 // called from: mcs.c; findEd.c
 //
 // Like R's "max", returns the maximum in a vector.
-// In: d - pointer to int vector
-// Out: int, the maximum in d.
+// In: d - pointer to unsigned int vector
+// Out: unsigned int, the maximum in d.
 /******************************************************************************/
 unsigned int max(unsigned int *d)
 {
@@ -157,8 +149,7 @@ unsigned int max(unsigned int *d)
 
   m = d[1];
   for(i=2; i<=d[0]; i++)
-    if (m < d[i])
-      m = d[i];
+    if (m < d[i]) m = d[i];
   return m;
 }
 
@@ -166,8 +157,8 @@ unsigned int max(unsigned int *d)
 // called from: mcs.c; findEd.c
 //
 // Like R's "setdiff", returns the vector A\B.
-// In: A - pointer to int vector
-//     B - pointer to int vector
+// In: A - pointer to unsigned int vector
+//     B - pointer to unsigned int vector
 // Out: pointer to int vector, with A\B (vec[0]=number of elements in vec).
 /******************************************************************************/
 unsigned int *setDiff(unsigned int *A, unsigned int *B)
@@ -197,8 +188,7 @@ unsigned int *setDiff(unsigned int *A, unsigned int *B)
 
   R[0] = k-1;
   result = (unsigned int *)malloc((k+1+1)*sizeof(unsigned int)); //precise length
-  for (i=0;i<=R[0];i++)
-    result[i] = R[i];
+  for (i=0;i<=R[0];i++) result[i] = R[i];
   free(R);
 
   return(result);
@@ -208,8 +198,8 @@ unsigned int *setDiff(unsigned int *A, unsigned int *B)
 // called from: mcs.c; findEd.c
 //
 // Like R's "setequal", returns TRUE if A=B, FALSE otherwise.
-// In: A - pointer to int vector
-//     B - pointer to int vector
+// In: A - pointer to unsigned int vector
+//     B - pointer to unsigned int vector
 // Out: boolean.
 /******************************************************************************/
 bool setEqual(unsigned int *A, unsigned int *B)
@@ -245,9 +235,9 @@ bool setEqual(unsigned int *A, unsigned int *B)
 // called from: mcs.c; findEd.c
 //
 // Like R's "intersect", returns the vector with the intersection of A and B.
-// In: A - pointer to int vector
-//     B - pointer to int vector
-// Out: pointer to int vector (vec[0]=number of elements in vec).
+// In: A - pointer to unsigned int vector
+//     B - pointer to unsigned int vector
+// Out: pointer to unsigned int vector (vec[0]=number of elements in vec).
 /******************************************************************************/
 unsigned int *intersect(unsigned int *A, unsigned int *B)
 {
@@ -289,8 +279,7 @@ unsigned int *intersect(unsigned int *A, unsigned int *B)
   R[0] = k-1;
   //precise lenght + 1
   result = (unsigned int *)malloc((k+1+1)*sizeof(unsigned int));
-  for (i=0;i<=R[0];i++)
-    result[i] = R[i];
+  for (i=0;i<=R[0];i++) result[i] = R[i];
   free(R); //cannot free C and D because they are just references to the real
            //vectors!!!
 
@@ -305,8 +294,8 @@ unsigned int *intersect(unsigned int *A, unsigned int *B)
 //          the edge
 //     v2 - pointer SEXP (double, but considered ind), with the second vertex of
 //          the edge
-//     vs - vector int, subset of vertices
-//     p  - int, total number of vertices
+//     vs - vector unsigned int, subset of vertices
+//     p  - unsigned int, total number of vertices
 // Out: boolean (true=complete; false=not complete).
 /******************************************************************************/
 bool isComplete(SEXP v1, SEXP v2, unsigned int *vs, unsigned int p)

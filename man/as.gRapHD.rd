@@ -15,7 +15,7 @@
 }
 
 \details{
-  \dots can have:\cr
+  \dots can be:\cr
   \code{p} - number of variables (vertices) in the model.\cr
   \code{stat} - measure used (LR, AIC, or BIC).\cr
   \code{statSeq} - vector with \code{-2(log-likelihood)} for each edge.\cr
@@ -35,5 +35,10 @@ David Edwards (\email{David.Edwards@agrsci.dk})
   as.gRapHD(NULL)
   as.gRapHD(matrix(integer(0),,2))
   as.gRapHD(matrix(integer(0),,2),p=10,stat="BIC",homog=FALSE)
+  
+  # note that the vertices must be numbered consecutively from 1. In the
+  # following vertex 2 is added as an isolated vertex.
+  m1 <- as.gRapHD(matrix(c(1,3,1,4),,2,byrow=TRUE))
+  \dontrun{plot(m1)}
 }
 \keyword{graphs}

@@ -1,6 +1,6 @@
 \name{is.gRapHD}
 \alias{is.gRapHD}
-\title{Tests is a object is of "gRapHD" class.}
+\title{Tests whether an object is of "gRapHD" class.}
 \description{
   \code{\link{Methods}} for class \code{gRapHD}.
 }

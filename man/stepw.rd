@@ -44,7 +44,7 @@
 }
 
 \details{
-  Performs a stepwise forward selection of edges to be added to a graph. Only
+  Performs a stepwise forward selection of edges to be added to a triangulated graph. Only
   edges preserving the triangularity are considered
   (\code{\link[gRapHD:findEd]{findEd}}). At each step the edge giving the greatest improvement in the
   chosen statistic is added. The process ends when no further improvement is possible.\cr

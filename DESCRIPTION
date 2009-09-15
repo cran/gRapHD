@@ -1,5 +1,5 @@
 Package: gRapHD
-Version: 0.1.6
+Version: 0.1.7
 Date: 2009-09-15
 Title: Efficient selection of undirected graphical models for
         high-dimensional datasets
@@ -19,6 +19,6 @@ Description: gRapHD is designed for efficient selection of
         supports the use of discrete, continuous, or both types of
         variables.
 License: GPL (>= 3)
-Packaged: 2010-03-03 13:32:59 UTC; GAAB
+Packaged: 2010-08-17 11:02:14 UTC; GAAB
 Repository: CRAN
-Date/Publication: 2010-03-05 09:45:36
+Date/Publication: 2010-08-17 12:53:06

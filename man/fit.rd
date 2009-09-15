@@ -29,6 +29,10 @@ Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
 David Edwards (\email{David.Edwards@agrsci.dk})
 }
 
+\references{
+Lauritzen, S.L. (1996) \emph{Graphical Models}, Oxford University Press.\cr
+}
+
 \examples{
   data(dsCont)
   m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")

@@ -859,6 +859,8 @@ stepw <- function(model,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL,
 
   STOP <- FALSE # flag indicating when to stop
   iteration <- 0
+  if (!is.null(model$minForest))
+    iteration <- nrow(model$edges) - model$minForest[2]
   ch <- initial
   SS <- NULL
 
@@ -900,21 +902,24 @@ stepw <- function(model,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL,
         if (is.na(value))
           continue <- FALSE
         else
-          if ((value < threshold) & (exact))
+          if (is.finite(value))
           {
-            continue <- FALSE
-            add <- TRUE
-          }
-          else
-            if (value < threshold)
+            if ((value < threshold) & (exact))
             {
-              # Lauritzen (1996, pg 11): Proposition 2.6 (Leimer) - An undirected,
-              # marked graph G is decomposable if and only if G* is triangulated.
-              continue <- (MCS(edges=rbind(model$edges,change[aux,1:2],star),v=1,p=p+!is.null(star)))[1] == 0
-              add <- !continue #statValues[aux] <- !continue*statValues[aux] + continue*threshold
+              continue <- FALSE
+              add <- TRUE
             }
             else
-              continue <- FALSE
+              if (value < threshold)
+              {
+                # Lauritzen (1996, pg 11): Proposition 2.6 (Leimer) - An undirected,
+                # marked graph G is decomposable if and only if G* is triangulated.
+                continue <- (MCS(edges=rbind(model$edges,change[aux,1:2],star),v=1,p=p+!is.null(star)))[1] == 0
+                add <- !continue #statValues[aux] <- !continue*statValues[aux] + continue*threshold
+              }
+              else
+                continue <- FALSE
+          }
       }
       if (add) # it improves the model
       {
@@ -1241,12 +1246,12 @@ calcStat <- function(dataset,homog=TRUE,forbEdges=NULL,stat="LR")
 # Out: matrix (2xp) with the coordinates of the vertices
 ################################################################################
 plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
-                        plotVert=TRUE,energy=FALSE,
+                        plotVert=TRUE,plotEdges=TRUE,energy=FALSE,
                         useWeights=FALSE,vert.hl=NULL,col.hl="red",
                         vert.radii=0.01,coord=NULL,col.ed="darkgray",lty.ed=1,
                         lwd.ed=1,lwd.vert=1,border=0,symbol.vert=1,
                         cex.vert.label=.40,vert.labels=TRUE,asp=NA,disp=TRUE,
-                        font=par("font"),col.labels=NULL,...)
+                        font=par("font"),col.labels=NULL,add=FALSE,...)
 {
   model <- x
   rm(x)
@@ -1360,11 +1365,19 @@ plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
   if (disp) # if it is to be plotted
   {
     if (is.null(main)) main <- ""
-    plot.new()
-    par(mar=c(0,0,1.5*(main!=""),0),oma=c(0,0,0,0))
-    plot.window(c(0,1), c(0,1), asp=asp)
+    save.mar <- par("mar")
+    save.oma <- par("oma")
+    if (!add)
+    {
+      plot.new()
+      par(mar=c(0,0,1.5*(main!=""),0),oma=c(0,0,0,0))
+      plot.window(c(0,1),c(0,1),asp=asp)
+    }
+    arg <- list(...)
+    if (!is.null(arg$xpd)) par(xpd=arg$xpd)
+    rm(arg)
     coordE <- matrix(0,nrow(edges),4)
-    if (length(edgesL)>0)
+    if ((plotEdges) & (length(edgesL)>0))
       for (i in 1:nrow(edgesL))
       {
         coordE[i,1:2] <- c(coordV[edgesL[i,1],1],coordV[edgesL[i,2],1])
@@ -1427,6 +1440,7 @@ plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
 
     if (!is.null(main))
       title(main=main)
+    par(mar=save.mar,oma=save.oma,xpd=FALSE)
   }
 
   invisible(coordV)
@@ -2372,11 +2386,11 @@ CI.test <- function(x,y,S,dataset,homog=TRUE)
     }
     else # mixed
     {
-      discrete   <- intersect(clique,which(numCat!=1))
-      continuous <- setdiff(clique,discrete)
+      discrete   <- clique[numCat[clique]!=0] #intersect(clique,which(numCat!=0))
+      continuous <- clique[numCat[clique]==0] #setdiff(clique,discrete)
       tab <- table(as.data.frame(dataset[,discrete]))
       ssd <- diag(0,length(continuous))
-      if (sum(numCat[edge])==0) # both are continuous
+      if (sum(numCat[edge]==0)==2) # both are continuous
         if (homog)
         {
           for (j in 1:length(tab))
