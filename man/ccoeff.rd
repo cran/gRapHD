@@ -1,12 +1,12 @@
 \name{ccoeff}
 \alias{ccoeff}
-\title{Clustering coefficient.}
+\title{Clustering coefficient}
 \description{
-  Returns the clustering coefficients of the nodes in a graph.
+  Returns the clustering coefficients of the vertices in a graph.
 }
 
 \usage{
-  ccoeff(model=NULL,edges=NULL,p=NULL)
+ccoeff(model=NULL,edges=NULL,p=NULL)
 }
 
 \arguments{
@@ -28,16 +28,14 @@ is the number of edges between the neighbours of \code{i}.
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
-David Edwards (\email{David.Edwards@agrsci.dk})
+Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk})
 }
 
 \examples{
-  data(dsCont)
-  m <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="BIC")
-  m1 <- stepw(m,dsCont)
-  cc <- ccoeff(edges=m1$edges,p=m1$p)
-  mean(cc)
+data(dsCont)
+m <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="BIC")
+m1 <- stepw(m,dsCont)
+cc <- ccoeff(edges=m1$edges,p=m1$p)
+mean(cc)
 }
 \keyword{graphs}

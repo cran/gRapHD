@@ -6,7 +6,7 @@
 }
 
 \usage{
-  rowProds(x,na.rm=TRUE)
+rowProds(x,na.rm=TRUE)
 }
 
 \arguments{
@@ -24,16 +24,15 @@
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
-David Edwards (\email{David.Edwards@agrsci.dk})
+Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk})
 }
 
 \examples{
-  set.seed(1,kind="Mersenne-Twister")
-  a <- matrix(rnorm(100),nrow=5)
-  x <- rowProds(x=a, na.rm=TRUE)
-  # x
-  # [1] -3.359208e-07 -2.861043e-10 -2.831108e-08 -5.451996e-07  3.057436e-04
+set.seed(1,kind="Mersenne-Twister")
+a <- matrix(rnorm(100),nrow=5)
+x <- rowProds(x=a, na.rm=TRUE)
+# x
+# [1] -3.359208e-07 -2.861043e-10 -2.831108e-08 
+# [4] -5.451996e-07  3.057436e-04
 }
 \keyword{array}

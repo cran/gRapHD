@@ -1,12 +1,12 @@
 \name{neighbourhood}
 \alias{neighbourhood}
-\title{Neighbourhood of a central vertex.}
+\title{Neighbourhood of a vertex}
 \description{
   Finds the set of vertices with up to a given distance from a given vertex.
 }
 
 \usage{
-  neighbourhood(model=NULL,edges=NULL,orig=NULL,rad=1)
+neighbourhood(model=NULL,edges=NULL,orig=NULL,rad=1)
 }
 
 \arguments{
@@ -32,15 +32,13 @@
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
-David Edwards (\email{David.Edwards@agrsci.dk})
+Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk})
 }
 
 \examples{
-  data(dsCont)
-  m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-  aux <- neighbourhood(model=m1,orig=27,rad=2)
-  plot(as.gRapHD(aux$edges,p=m1$p),vert=aux$v[,1])
+data(dsCont)
+m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
+aux <- neighbourhood(model=m1,orig=27,rad=2)
+plot(as.gRapHD(aux$edges,p=m1$p),vert=aux$v[,1])
 }
 \keyword{graphs}

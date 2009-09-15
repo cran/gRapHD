@@ -1,12 +1,12 @@
 \name{adjMat}
 \alias{adjMat}
-\title{Adjacency matrix.}
+\title{Adjacency matrix}
 \description{
   Returns the adjacency matrix based on a list of edges, supplied in a \code{gRapHD} object or as a matrix.
 }
 
 \usage{
-  adjMat(model=NULL,edges=NULL,p=NULL)
+adjMat(model=NULL,edges=NULL,p=NULL)
 }
 
 \arguments{
@@ -22,20 +22,18 @@
 }
 
 \details{
-The dimension of the matrix is given by \code{model$p} or by the maximum of the number of 
-vertices in \code{edges} and \code{p}.
+The dimension of the matrix is given by \code{model$p} or by the maximum value 
+between \code{max(edges)} and \code{p}.
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
-David Edwards (\email{David.Edwards@agrsci.dk})
+Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk})
 }
 
 \examples{
-  data(dsCont)
-  m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-  edges <- SubGraph(edges=m1$edges,v=1:10)$edges
-  adjMat(edges=edges,p=10)
+data(dsCont)
+m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
+edges <- SubGraph(edges=m1$edges,v=1:10)$edges
+adjMat(edges=edges,p=10)
 }
 \keyword{graphs}

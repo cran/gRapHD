@@ -2,11 +2,11 @@
 \alias{fit}
 \title{Log-likelihood, AIC, BIC}
 \description{
-  Calculate -2*log-likelihood, AIC, and BIC for a triangulated graph (decomposable model).
+  Calculates -2*log-likelihood, AIC, and BIC for a triangulated graph (decomposable model).
 }
 
 \usage{
-  fit(model=NULL, edges=NULL, dataset, homog=NULL)
+fit(model=NULL, edges=NULL, dataset, homog=NULL)
 }
 
 \arguments{
@@ -28,8 +28,7 @@
 
 \author{
 Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
-David Edwards (\email{David.Edwards@agrsci.dk})
+Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) 
 }
 
 \references{
@@ -37,8 +36,8 @@ Lauritzen, S.L. (1996) \emph{Graphical Models}, Oxford University Press.\cr
 }
 
 \examples{
-  data(dsCont)
-  m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-  fit(edges=m1$edges,dataset=dsCont)
+data(dsCont)
+m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
+fit(edges=m1$edges,dataset=dsCont)
 }
 \keyword{graphs}

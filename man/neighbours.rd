@@ -1,12 +1,12 @@
 \name{neighbours}
 \alias{neighbours}
-\title{Find all direct neighbours}
+\title{Finds all direct neighbours}
 \description{
-  Find all direct neighbours of a given vertex in a given graph.
+  Finds all direct neighbours of a given vertex in a given graph.
 }
 
 \usage{
-  neighbours(model=NULL,edges=NULL,v)
+neighbours(model=NULL,edges=NULL,v)
 }
 
 \arguments{
@@ -17,7 +17,7 @@
 }
 
 \value{
-  Vector with all neighbours of \code{v}.
+  Vector with all neighbours of vertex \code{v}.
 }
 
 \details{
@@ -26,16 +26,14 @@
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
-David Edwards (\email{David.Edwards@agrsci.dk})
+Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk})
 }
 
 \examples{
-  data(dsCont)
-  m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-  neigh <- neighbours(edges=m1$edges, v=22)
-  #    > neigh
-  #    [1]  3  9 24 25
+data(dsCont)
+m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
+neigh <- neighbours(edges=m1$edges, v=22)
+#    > neigh
+#    [1]  3  9 24 25
 }
 \keyword{graphs}

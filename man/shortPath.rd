@@ -1,12 +1,12 @@
 \name{shortPath}
 \alias{shortPath}
-\title{Shortest path.}
+\title{Shortest path}
 \description{
   Shortest paths between one vertex and all other vertices.
 }
 
 \usage{
-  shortPath(model=NULL,edges=NULL,v=NULL,p=NULL)
+shortPath(model=NULL,edges=NULL,v=NULL,p=NULL)
 }
 
 \arguments{
@@ -31,13 +31,12 @@ vertices.}
 
 \author{
 Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
-David Edwards (\email{David.Edwards@agrsci.dk})
+Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) 
 }
 
 \examples{
-  data(dsCont)
-  m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-  shortPath(edges=m1$edges,v=1)
+data(dsCont)
+m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
+shortPath(edges=m1$edges,v=1)
 }
 \keyword{graphs}

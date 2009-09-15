@@ -6,7 +6,7 @@
 }
 
 \usage{
-  SubGraph(model=NULL,edges=NULL,v=NULL,p=0)
+SubGraph(model=NULL,edges=NULL,v=NULL,p=0)
 }
 
 \arguments{
@@ -27,18 +27,16 @@
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
-David Edwards (\email{David.Edwards@agrsci.dk})
+Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk})
 }
 
 \examples{
-  data(dsCont)
-  m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-  plot(m1,numIter=1000)
-  
-  v <- c(1,11,21,19,30,25,22,24,34,9,20,29)
-  subM1 <- SubGraph(model=m1,v=v)
-  plot(subM1,numIter=1500)
+data(dsCont)
+m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
+plot(m1,numIter=1000)
+
+v <- c(1,11,21,19,30,25,22,24,34,9,20,29)
+subM1 <- SubGraph(model=m1,v=v)
+plot(subM1,numIter=1500)
 }
 \keyword{graphs}

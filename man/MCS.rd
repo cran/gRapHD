@@ -6,7 +6,7 @@
 }
 
 \usage{
-  MCS(model=NULL,edges=NULL,v=0,p=NULL)
+MCS(model=NULL,edges=NULL,v=0,p=NULL)
 }
 
 \arguments{
@@ -30,8 +30,7 @@
 
 \author{
 Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
-David Edwards (\email{David.Edwards@agrsci.dk})
+Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) 
 }
 
 \references{
@@ -43,10 +42,10 @@ Leimer, H. Triangulated graphs with marked vertices. \emph{Ann. Discr. Maths.}, 
 }
 
 \examples{
-  set.seed(7,kind="Mersenne-Twister")
-  dataset <- matrix(rnorm(1000),nrow=100,ncol=10)
-  m <- minForest(dataset,stat="BIC")
+set.seed(7,kind="Mersenne-Twister")
+dataset <- matrix(rnorm(1000),nrow=100,ncol=10)
+m <- minForest(dataset,stat="BIC")
 
-  MCS(edges=m$edges,v=1,p=10)
+MCS(edges=m$edges,v=1,p=10)
 }
 \keyword{graphs}

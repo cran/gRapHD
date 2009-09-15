@@ -1,12 +1,12 @@
 \name{print.gRapHD}
 \alias{print.gRapHD}
-\title{Prints an object of class "gRapHD".}
+\title{Prints an object of class "gRapHD"}
 \description{
   \code{\link{Methods}} for class \code{gRapHD}.
 }
 
 \usage{
-  \method{print}{gRapHD}(x,...)
+\method{print}{gRapHD}(x,...)
 }
 
 \arguments{
@@ -19,14 +19,11 @@
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
-David Edwards (\email{David.Edwards@agrsci.dk})
+Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk})
 }
 
 \examples{
-  m <- as.gRapHD(NULL)
-  m
-
+m <- as.gRapHD(NULL)
+m
 }
 \keyword{graphs}

@@ -1,16 +1,16 @@
 \name{as.gRapHD}
 \alias{as.gRapHD}
-\title{Coerce to an object of type "gRapHD".}
+\title{Coerces to an object of type "gRapHD"}
 \description{
   \code{\link{Methods}} for class \code{gRapHD}.
 }
 
 \usage{
-  \method{as}{gRapHD}(object,...)
+\method{as}{gRapHD}(object,...)
 }
 
 \arguments{
-  \item{object}{list of edges: NULL, or integer with dimension (k,2).}
+  \item{object}{list of edges: NULL, or integer with dimension \code{(k,2)}.}
   \item{\dots}{further arguments passed to or from other methods.}
 }
 
@@ -26,19 +26,17 @@
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
-David Edwards (\email{David.Edwards@agrsci.dk})
+Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk})
 }
 
 \examples{
-  as.gRapHD(NULL)
-  as.gRapHD(matrix(integer(0),,2))
-  as.gRapHD(matrix(integer(0),,2),p=10,stat="BIC",homog=FALSE)
-  
-  # note that the vertices must be numbered consecutively from 1. In the
-  # following vertex 2 is added as an isolated vertex.
-  m1 <- as.gRapHD(matrix(c(1,3,1,4),,2,byrow=TRUE))
-  \dontrun{plot(m1)}
+as.gRapHD(NULL)
+as.gRapHD(matrix(integer(0),,2))
+as.gRapHD(matrix(integer(0),,2),p=10,stat="BIC",homog=FALSE)
+
+# note that the vertices must be numbered consecutively from 1. In the
+# following, vertex 2 is added as an isolated vertex.
+m1 <- as.gRapHD(matrix(c(1,3,1,4),,2,byrow=TRUE))
+\dontrun{plot(m1)}
 }
 \keyword{graphs}

@@ -1,12 +1,12 @@
 \name{modelDim}
 \alias{modelDim}
-\title{Calculate the dimension of a model.}
+\title{Model's dimension}
 \description{
   Calculates the number of free parameters in the model.
 }
 
 \usage{
-  modelDim(model)
+modelDim(model)
 }
 
 \arguments{
@@ -23,8 +23,7 @@
 
 \author{
 Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
-David Edwards (\email{David.Edwards@agrsci.dk})
+Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) 
 }
 
 \references{
@@ -33,13 +32,13 @@ Lauritzen, S.L. (1996) \emph{Graphical Models}, Oxford University Press.\cr
 
 
 \examples{
-  data(dsCont)
-  m <- minForest(dsCont,stat="BIC")
-  modelDim(m)
-  # 102
+data(dsCont)
+m <- minForest(dsCont,stat="BIC")
+modelDim(m)
+# 102
 
-  m <- stepw(m,dsCont,stat="BIC")
-  modelDim(m)
-  # 149
+m <- stepw(m,dsCont,stat="BIC")
+modelDim(m)
+# 149
 }
 \keyword{graphs}

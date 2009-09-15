@@ -6,7 +6,7 @@
 }
 
 \usage{
-  jTree(model)
+jTree(model)
 }
 
 \arguments{
@@ -34,37 +34,36 @@
 
 \author{
 Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
-David Edwards (\email{David.Edwards@agrsci.dk})
+Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) 
 }
 
 \examples{
-  edges <- matrix(c(1,2,2,3,2,4,2,5,2,6,3,4,4,
-                    5,5,6,7,8,7,9,8,9,8,10,9,10),ncol=2,byrow=TRUE)
-  m <- as.gRapHD(edges)
-  jT <- jTree(m)
-    #  > str(jT)
-    #  List of 5
-    #   $ separators    :List of 5
-    #    ..$ : int(0)
-    #    ..$ : int 2
-    #    ..$ : int [1:2] 2 4
-    #    ..$ : int [1:2] 2 5
-    #    ..$ : int [1:2] 8 9
-    #   $ juncTree      : int [1:4, 1:2] 1 2 3 5 2 3 4 6
-    #   $ sepSubSetOfSep:List of 5
-    #    ..$ : int [1:4] 2 3 4 5
-    #    ..$ : int [1:2] 3 4
-    #    ..$ : int(0)
-    #    ..$ : int(0)
-    #    ..$ : int(0)
-    #   $ indSepOrig    : int [1:6] 1 2 3 4 1 5
-    #   $ cliques       :List of 6
-    #    ..$ : int [1:2] 1 2
-    #    ..$ : int [1:3] 2 3 4
-    #    ..$ : int [1:3] 2 4 5
-    #    ..$ : int [1:3] 2 5 6
-    #    ..$ : int [1:3] 7 8 9
-    #    ..$ : int [1:3] 8 9 10
+edges <- matrix(c(1,2,2,3,2,4,2,5,2,6,3,4,4,
+                  5,5,6,7,8,7,9,8,9,8,10,9,10),ncol=2,byrow=TRUE)
+m <- as.gRapHD(edges)
+jT <- jTree(m)
+str(jT)
+# List of 5
+#  $ separators    :List of 5
+#   ..$ : int(0)
+#   ..$ : int 2
+#   ..$ : int [1:2] 2 4
+#   ..$ : int [1:2] 2 5
+#   ..$ : int [1:2] 8 9
+#  $ juncTree      : int [1:4, 1:2] 1 2 3 5 2 3 4 6
+#  $ sepSubSetOfSep:List of 5
+#   ..$ : int [1:4] 2 3 4 5
+#   ..$ : int [1:2] 3 4
+#   ..$ : int(0)
+#   ..$ : int(0)
+#   ..$ : int(0)
+#  $ indSepOrig    : int [1:6] 1 2 3 4 1 5
+#  $ cliques       :List of 6
+#   ..$ : int [1:2] 1 2
+#   ..$ : int [1:3] 2 3 4
+#   ..$ : int [1:3] 2 4 5
+#   ..$ : int [1:3] 2 5 6
+#   ..$ : int [1:3] 7 8 9
+#   ..$ : int [1:3] 8 9 10
 }
 \keyword{graphs}

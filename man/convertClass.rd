@@ -1,12 +1,12 @@
 \name{convertClass}
 \alias{convertClass}
-\title{Convert object between classes}
+\title{Converts object between classes}
 \description{
-  Convert objects between gRapHD and graphNEL classes.
+  Converts objects between gRapHD and graphNEL classes.
 }
 
 \usage{
-  convertClass(object)
+convertClass(object)
 }
 
 \arguments{
@@ -29,7 +29,6 @@
 
 \author{
 Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
 David Edwards (\email{David.Edwards@agrsci.dk})
 }
 
@@ -39,24 +38,24 @@ handle graph data structures. R package version 1.22.2.
 }
 
 \examples{
-  # convertion from gRapHD to graphNEL
-  edges <- matrix(c(1,2,1,3,1,4),,2,byrow=TRUE)
-  g <- as.gRapHD(edges)
-  #List of 9
-  # $ edges    : num [1:3, 1:2] 1 1 1 2 3 4
-  # $ p        : int 4
-  # $ stat.user: chr "LR"
-  # $ statSeq  : num [1:3] NA NA NA
-  # $ varType  : int [1:4] 0 0 0 0
-  # $ numCat   : int [1:4] 0 0 0 0
-  # $ homog    : logi TRUE
-  # $ numP     : num [1:3] NA NA NA
-  # $ userDef  : num [1:2] 1 3
-  # - attr(*, "class")= chr "gRapHD"
-  g1 <- convertClass(g)
-  # A graphNEL graph with undirected edges
-  # Number of Nodes = 4
-  # Number of Edges = 3
-  g1@nodes # the nodes names
+# convertion from gRapHD to graphNEL
+edges <- matrix(c(1,2,1,3,1,4),,2,byrow=TRUE)
+g <- as.gRapHD(edges)
+#List of 9
+# $ edges    : num [1:3, 1:2] 1 1 1 2 3 4
+# $ p        : int 4
+# $ stat.user: chr "LR"
+# $ statSeq  : num [1:3] NA NA NA
+# $ varType  : int [1:4] 0 0 0 0
+# $ numCat   : int [1:4] 0 0 0 0
+# $ homog    : logi TRUE
+# $ numP     : num [1:3] NA NA NA
+# $ userDef  : num [1:2] 1 3
+# - attr(*, "class")= chr "gRapHD"
+g1 <- convertClass(g)
+# A graphNEL graph with undirected edges
+# Number of Nodes = 4
+# Number of Edges = 3
+g1@nodes # the nodes names
 }
 \keyword{graphs}

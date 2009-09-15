@@ -1,12 +1,12 @@
 \name{CI.test}
 \alias{CI.test}
-\title{Test of conditional independence.}
+\title{Test of conditional independence}
 \description{
   Test of conditional independence.
 }
 
 \usage{
-  CI.test(x,y,S,dataset,homog=TRUE)
+CI.test(x,y,S,dataset,homog=TRUE)
 }
 
 \arguments{
@@ -48,14 +48,13 @@ New York Inc.\cr
 }
 
 \examples{
-  data(dsCont)
-  m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="BIC")
-  CI.test(20,29,c(9,11),dsCont)
+data(dsCont)
+m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="BIC")
+CI.test(20,29,c(9,11),dsCont)
 #$deviance
 #[1] 0.7617515263220724
-
+#
 #$numP
 #[1] 1
-
 }
 \keyword{graphs}

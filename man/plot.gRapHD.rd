@@ -1,18 +1,17 @@
 \name{plot.gRapHD}
 \alias{plot.gRapHD}
-\title{Plot a gRapHD object}
+\title{Plots a gRapHD object}
 \description{
-  Plots a graph using the Fruchterman-Reingold algorithm.
+  \code{\link{Methods}} for class \code{gRapHD}.
 }
 
 \usage{
-\method{plot}{gRapHD}(x,vert=NULL,numIter=50,main="",
-     plotVert=TRUE,plotEdges=TRUE,energy=FALSE,useWeights=FALSE,
-     vert.hl=NULL,col.hl="red",vert.radii=0.01,
-     coord=NULL,col.ed="darkgray",lty.ed=1,
-     lwd.ed=1,lwd.vert=1,border=0,symbol.vert=1,
-     cex.vert.label=.40,vert.labels=TRUE,asp=NA,disp=TRUE,
-     font=par("font"),col.labels=NULL,add=FALSE,...)
+\method{plot}{gRapHD}(x,vert=NULL,numIter=50,main="",plotVert=TRUE,plotEdges=TRUE,
+     energy=FALSE,useWeights=FALSE,vert.hl=NULL,col.hl="red",
+     vert.radii=0.01,coord=NULL,col.ed="darkgray",lty.ed=1,lwd.ed=1,
+     lwd.vert=1,border=0,symbol.vert=1,cex.vert.label=.40, 
+     vert.labels=TRUE,asp=NA,disp=TRUE,font=par("font"),
+     col.labels=NULL,add=FALSE,...)
 }
 
 \arguments{
@@ -81,43 +80,43 @@ in subsequent calls to plot using the \code{coord} argument, usually with
 
 \author{
 Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
-David Edwards (\email{David.Edwards@agrsci.dk})
+Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) 
 }
 
 \references{
   Fruchterman, T.M.J. and Reingold, E.M. (1991) Graph Drawing by Force-directed
-  Placement. \emph{SOFTWARE-PRACTICE AND EXPERIENCE}, VOL. 21(11), 1129-1164.\cr
+  Placement. \emph{Software-Practice and Experience}, Vol. 21(11), 1129-1164.\cr
+  \cr
   Csardi G, Nepusz T: The igraph software package for complex network
   research, InterJournal, Complex Systems 1695. 2006.
   http://igraph.sf.net
 }
 
 \examples{
-  data(dsCont)
-  m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-  plot(m1,numIter=1000)
+data(dsCont)
+m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
+plot(m1,numIter=1000)
 
-  # or
-  plot(m1,numIter=1000,plotVert=FALSE,labelVert=FALSE)
-  
-  #############
-  r <- 3
-  edges <- rep(1,r)
-  x <- 2+r-1
-  edges <- c(edges,sort(rep(2:x,r-1)))
-  edges <- c(edges,sort(rep((x+1):(x+(x-1)*(r-1)),r-2)))
-  edges <- c(edges,sort(rep((x+(x-1)*(r-1)+1):(x+(x-1)*(r-1)+(x-1)*(r-1)*(r-2)),
-                             r-3)))
-  edges <- cbind(edges,2:(length(edges)+1))
-  a <- neighbourhood(edges=edges,orig=1,rad=r)
-  vs <- a$v[,2]
-  vs <- 1/vs
-  vs[1] <- 2
-  vs <- vs/30
-  model <- as.gRapHD(edges)
-  plot(model,numIter=200,vert.hl=a$v[,1],col.hl=colours()[386:383][a$v[,2]+1],
-       vert.radii=vs,border="black",lwd.vert=2)
+# or
+plot(m1,numIter=1000,plotVert=FALSE,labelVert=FALSE)
+
+#############
+r <- 3
+edges <- rep(1,r)
+x <- 2+r-1
+edges <- c(edges,sort(rep(2:x,r-1)))
+edges <- c(edges,sort(rep((x+1):(x+(x-1)*(r-1)),r-2)))
+edges <- c(edges,sort(rep((x+(x-1)*(r-1)+1):(x+(x-1)*(r-1)+
+                          (x-1)*(r-1)*(r-2)),r-3)))
+edges <- cbind(edges,2:(length(edges)+1))
+a <- neighbourhood(edges=edges,orig=1,rad=r)
+vs <- a$v[,2]
+vs <- 1/vs
+vs[1] <- 2
+vs <- vs/30
+model <- as.gRapHD(edges)
+plot(model,numIter=200,col.hl=colours()[386:383][a$v[,2]+1],
+     vert.hl=a$v[,1],vert.radii=vs,border="black",lwd.vert=2)
 }
 \keyword{graphs}
 \keyword{dplot}

@@ -1,13 +1,13 @@
 \name{findEd}
 \alias{findEd}
-\title{Find add-eligible edges }
+\title{Finds add-eligible edges }
 \description{
-  Find the edges that can be added to a (strongly) triangulated graph such that 
+  Finds the edges that can be added to a (strongly) triangulated graph such that 
 the result is also (strongly) triangulated.
 }
 
 \usage{
-  findEd(edges,p,previous=NULL,numCat,from=0,exact=FALSE,join=FALSE)
+findEd(edges,p,previous=NULL,numCat,from=0,exact=FALSE,join=FALSE)
 }
 
 \arguments{
@@ -61,36 +61,37 @@ Lauritzen, S.L. (1996) \emph{Graphical Models}, Oxford University Press.\cr
 }
 
 \examples{
-  edges <- matrix(c(1,2,2,3,2,4,2,5,2,6,3,4,4,5,5,6),ncol=2,byrow=TRUE)
-  addEligible <- findEd(edges=edges,p=6,previous=NULL,numCat=rep(0,6),from=1)
-  #    > str(addEligible)
-  #    List of 2
-  #     $ edges: num [1:7, 1:5] 1 1 3 1 4 3 1 3 4 5 ...
-  #     $ S    :List of 6
-  #      ..$ : int 2
-  #      ..$ : int [1:2] 2 4
-  #      ..$ : int 2
-  #      ..$ : int [1:2] 2 5
-  #      ..$ : int 2
-  #      ..$ : int 2
-  #    > addEligible$edges
-  #         [,1] [,2] [,3] [,4] [,5]
-  #    [1,]    1    3    1    0    0
-  #    [2,]    1    4    1    0    0
-  #    [3,]    3    5    2    0    0
-  #    [4,]    1    5    3    0    0
-  #    [5,]    4    6    4    0    0
-  #    [6,]    3    6    5    0    0
-  #    [7,]    1    6    6    0    0
+edges <- matrix(c(1,2,2,3,2,4,2,5,2,6,3,4,4,5,5,6),ncol=2,byrow=TRUE)
+addEligible <- findEd(edges=edges,p=6,previous=NULL,numCat=rep(0,6),
+                      from=1)
+#    > str(addEligible)
+#    List of 2
+#     $ edges: num [1:7, 1:5] 1 1 3 1 4 3 1 3 4 5 ...
+#     $ S    :List of 6
+#      ..$ : int 2
+#      ..$ : int [1:2] 2 4
+#      ..$ : int 2
+#      ..$ : int [1:2] 2 5
+#      ..$ : int 2
+#      ..$ : int 2
+#    > addEligible$edges
+#         [,1] [,2] [,3] [,4] [,5]
+#    [1,]    1    3    1    0    0
+#    [2,]    1    4    1    0    0
+#    [3,]    3    5    2    0    0
+#    [4,]    1    5    3    0    0
+#    [5,]    4    6    4    0    0
+#    [6,]    3    6    5    0    0
+#    [7,]    1    6    6    0    0
 
-  # the columns in addEligible$edges
-  #    1: first vertex in the edge
-  #    2: second vertex in the edge
-  #    3: index os the separator in addEligible$S
-  #    4: change in the LRT for the edge (used if previous != NULL)
-  #    5: number of parameters for the edge (used if previous != NULL)
+# the columns in addEligible$edges
+#    1: first vertex in the edge
+#    2: second vertex in the edge
+#    3: index os the separator in addEligible$S
+#    4: change in the LRT for the edge (used if previous != NULL)
+#    5: number of parameters for the edge (used if previous != NULL)
 
-  # note that the edge 3-6 (row 6) is actually a "false positive". If it's used
-  # from=3,4,5, or 6, this does not happen.
+# note that the edge 3-6 (row 6) is actually a "false positive". 
+# If it's used from=3,4,5, or 6, this does not happen.
 }
 \keyword{graphs}

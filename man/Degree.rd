@@ -1,12 +1,12 @@
 \name{Degree}
 \alias{Degree}
-\title{Degree.}
+\title{Degree}
 \description{
   Returns the degree of a set of vertices.
 }
 
 \usage{
-  Degree(model=NULL,edges=NULL,v=NULL)
+Degree(model=NULL,edges=NULL,v=NULL)
 }
 
 \arguments{
@@ -28,13 +28,12 @@ edges, the corresponding value is \code{NA}.}
 
 \author{
 Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
-David Edwards (\email{David.Edwards@agrsci.dk})
+Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) 
 }
 
 \examples{
-  data(dsCont)
-  m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-  Degree(model=m1)
+data(dsCont)
+m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
+Degree(model=m1)
 }
 \keyword{graphs}

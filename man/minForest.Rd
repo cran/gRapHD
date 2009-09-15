@@ -7,7 +7,8 @@ Chow-Liu lgorithm.
 }
 
 \usage{
-  minForest(dataset,homog=TRUE,forbEdges=NULL,stat="BIC",cond=NULL,...)
+minForest(dataset,homog=TRUE,forbEdges=NULL,stat="BIC",
+          cond=NULL,...)
 }
 
 \arguments{
@@ -21,11 +22,11 @@ Chow-Liu lgorithm.
                    column one of the vertices in the edge. Default is 
                    \code{NULL}.}
   \item{stat}{measure to be minimized: LR (-2*log-likelihood), AIC, or BIC.
-              Default is BIC. It can also be a user
-              defined function with format: \code{FUN(newEdge,varType,numCat,
-              dataset)}; where the parameters \code{varType} and \code{numCat}
-              are as defined in the Value section; \code{newEdge} is a vector
-              with length two; and \code{dataset} is a matrix (n by p).}
+              Default is LR. It can also be a user defined function with 
+              format: \code{FUN(newEdge,} \code{numCat,} \code{dataset)}; where 
+              \code{numCat} is a vector with number of levels for each variable 
+              (0 if continuous); \code{newEdge} is a vector with length two; 
+              and \code{dataset} is a matrix (n by p).}
   \item{cond}{list with complete sets of vertices, to specify mandatory edges.}
   \item{...}{arguments to be passed to the user function in \code{stat}.}
 }
@@ -73,65 +74,65 @@ dimensional mixed graphical models using minimal AIC or BIC forests.
 }
 
 \examples{
-  set.seed(7,kind="Mersenne-Twister")
-  dataset <- matrix(rnorm(1000),nrow=100,ncol=10)
-  m <- minForest(dataset,stat="BIC")
+set.seed(7,kind="Mersenne-Twister")
+dataset <- matrix(rnorm(1000),nrow=100,ncol=10)
+m <- minForest(dataset,stat="BIC")
 
-  ##############################################################################
-  # Example with continuous variables
-  data(dsCont)
-  # m1 <- minForest(dataset,varType=0,homog=TRUE,forbEdges=NULL,stat="LR")
-  #          1. in this case, there is no use for homog
-  #          2. no forbidden edges
-  #          3. the measure used is the LR (the result is a tree)
-  m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-  plot(m1,numIter=1000)
+#######################################################################
+# Example with continuous variables
+data(dsCont)
+# m1 <- minForest(dataset,homog=TRUE,forbEdges=NULL,stat="LR")
+#          1. in this case, there is no use for homog
+#          2. no forbidden edges
+#          3. the measure used is the LR (the result is a tree)
+m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
+plot(m1,numIter=1000)
 
-  ##############################################################################
-  # Example with discrete variables
-  data(dsDiscr)
-  # m1 <- minForest(dataset,varType=1,homog=TRUE,forbEdges=NULL,stat="LR")
-  #          1. in this case, there is no use for homog
-  #          2. no forbidden edges
-  #          3. the measure used is the LR (the result is a tree)
-  m1 <- minForest(dsDiscr,homog=TRUE,forbEdges=NULL,stat="LR")
-  plot(m1,numIter=1000)
+#######################################################################
+# Example with discrete variables
+data(dsDiscr)
+# m1 <- minForest(dataset,homog=TRUE,forbEdges=NULL,stat="LR")
+#          1. in this case, there is no use for homog
+#          2. no forbidden edges
+#          3. the measure used is the LR (the result is a tree)
+m1 <- minForest(dsDiscr,homog=TRUE,forbEdges=NULL,stat="LR")
+plot(m1,numIter=1000)
 
-  ##############################################################################
-  # Example with mixed variables
-  data(dsMixed)
-  # m1 <- minForest(dataset,varType=1,homog=TRUE,forbEdges=NULL,stat="LR")
-  #          1. it is to be considered homogeneous
-  #          2. no forbidden edges
-  #          3. the measure used is the LR (the result is a tree)
-  m1 <- minForest(dsMixed,homog=TRUE,forbEdges=NULL,stat="LR")
-  plot(m1,numIter=1000)
-  
-  ##############################################################################
-  # Example using a user defined function
-  #   The function userFun calculates the same edges weigths as the option
-  # stat="LR". It means that the final result, using either option, is the
-  # same.
-  userFun <- function(newEdge,numCat,dataset)
-  {
-    sigma <- var(dataset[,newEdge])
-    v <- nrow(dataset)*log(prod(diag(sigma))/det(sigma))
-    return(c(v,1))
-  }
-  
-  data(dsCont)
-  m <- minForest(dsCont,stat="LR")
-  m1 <- minForest(dsCont,stat=userFun)
-  identical(m$edges,m1$edges)
+#######################################################################
+# Example with mixed variables
+data(dsMixed)
+# m1 <- minForest(dataset,homog=TRUE,forbEdges=NULL,stat="LR")
+#          1. it is to be considered homogeneous
+#          2. no forbidden edges
+#          3. the measure used is the LR (the result is a tree)
+m1 <- minForest(dsMixed,homog=TRUE,forbEdges=NULL,stat="LR")
+plot(m1,numIter=1000)
 
-  ##############################################################################
-  # Example with mandatory edges (the so-called conditional Chow-Liu algorithm). 
-  # The edges (1,2), (1,3) and (2,3) are specified as mandatory. The algorithm 
-  # returns the optimal graph containing the mandatory edges such that only 
-  # cycles with mandatory edges are allowed.
-  data(dsCont)
-  m1 <- minForest(dsCont,cond=list(1:3))
-  \dontrun{plot(m1)}  
+#######################################################################
+# Example using a user defined function
+#   The function userFun calculates the same edges weigths as the 
+# option stat="LR". It means that the final result, using either 
+# option, is the same.
+userFun <- function(newEdge,numCat,dataset)
+{
+  sigma <- var(dataset[,newEdge])
+  v <- nrow(dataset)*log(prod(diag(sigma))/det(sigma))
+  return(c(v,1))
+}
 
+data(dsCont)
+m <- minForest(dsCont,stat="LR")
+m1 <- minForest(dsCont,stat=userFun)
+identical(m$edges,m1$edges)
+
+#######################################################################
+# Example with mandatory edges (the so-called conditional Chow-Liu 
+# algorithm).  The edges (1,2), (1,3) and (2,3) are specified as 
+# mandatory. The algorithm returns the optimal graph containing the 
+# mandatory edges such that only cycles with mandatory edges are 
+# allowed.
+data(dsCont)
+m1 <- minForest(dsCont,cond=list(1:3))
+\dontrun{plot(m1)}  
 }
 \keyword{graphs}

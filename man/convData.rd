@@ -1,12 +1,12 @@
 \name{convData}
 \alias{convData}
-\title{Convert dataset}
+\title{Converts dataset}
 \description{
-  Convert a dataset to a structure required by other functions.
+Converts a dataset to a structure required by other functions.
 }
 
 \usage{
-  convData(dataset)
+convData(dataset)
 }
 
 \arguments{
@@ -26,14 +26,12 @@
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
-David Edwards (\email{David.Edwards@agrsci.dk})
+Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk})
 }
 
 
 \examples{
-  data(dsDiscr)
-  ds <- convData(dsDiscr)
+data(dsDiscr)
+ds <- convData(dsDiscr)
 }
 \keyword{graphs}

@@ -2,11 +2,11 @@
 \alias{randTree}
 \title{Random tree}
 \description{
-  Generate a random tree.
+  Generates a random tree
 }
 
 \usage{
-  randTree(p,seed=1)
+randTree(p,seed=1)
 }
 
 \arguments{
@@ -26,9 +26,7 @@
 
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
-David Edwards (\email{David.Edwards@agrsci.dk})
+Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk})
 }
 
 \references{
@@ -38,25 +36,25 @@ pp. 879-887, June 2003.
 }
 
 \examples{
-  tree <- randTree(p=10, seed=1)
-  plot(as.gRapHD(tree$edges))
-  #    > tree
-  #    $edges
-  #          [,1] [,2]
-  #     [1,]    3    4
-  #     [2,]    3    5
-  #     [3,]    2    3
-  #     [4,]    4    6
-  #     [5,]    6    9
-  #     [6,]    1    6
-  #     [7,]    6   10
-  #     [8,]    6    7
-  #     [9,]    5    8
-  #
-  #    $seed
-  #    [1] 1
-  #
-  #    $p
-  #    [1] 10
+tree <- randTree(p=10, seed=1)
+plot(as.gRapHD(tree$edges))
+tree
+# $edges
+#       [,1] [,2]
+#  [1,]    3    4
+#  [2,]    3    5
+#  [3,]    2    3
+#  [4,]    4    6
+#  [5,]    6    9
+#  [6,]    1    6
+#  [7,]    6   10
+#  [8,]    6    7
+#  [9,]    5    8
+#
+# $seed
+# [1] 1
+#
+# $p
+# [1] 10
 }
 \keyword{graphs}

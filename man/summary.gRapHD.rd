@@ -1,12 +1,12 @@
 \name{summary.gRapHD}
 \alias{summary.gRapHD}
-\title{Summarizes model.}
+\title{Summarizes model}
 \description{
   \code{\link{Methods}} for class \code{gRapHD}.
 }
 
 \usage{
-  \method{summary}{gRapHD}(object,...)
+\method{summary}{gRapHD}(object,...)
 }
 
 \arguments{
@@ -19,14 +19,12 @@
 Give details about the model structure.}
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
-David Edwards (\email{David.Edwards@agrsci.dk})
+Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk})
 }
 
 \examples{
-  data(dsCont)
-  m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-  summary(m1)
+data(dsCont)
+m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
+summary(m1)
 }
 \keyword{graphs}
