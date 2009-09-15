@@ -32,13 +32,13 @@ neighbourhood(model=NULL,edges=NULL,orig=NULL,rad=1)
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk})
+Gabriel Coelho Goncalves de Abreu (\email{abreu_ga@yahoo.com.br})
 }
 
 \examples{
 data(dsCont)
 m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
 aux <- neighbourhood(model=m1,orig=27,rad=2)
-plot(as.gRapHD(aux$edges,p=m1$p),vert=aux$v[,1])
+plot(new("gRapHD",edges=aux$edges,p=m1@p),vert=aux$v[,1])
 }
 \keyword{graphs}

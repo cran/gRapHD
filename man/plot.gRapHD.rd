@@ -79,7 +79,7 @@ in subsequent calls to plot using the \code{coord} argument, usually with
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
+Gabriel Coelho Goncalves de Abreu (\email{abreu_ga@yahoo.com.br}) \cr
 Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) 
 }
 
@@ -114,7 +114,7 @@ vs <- a$v[,2]
 vs <- 1/vs
 vs[1] <- 2
 vs <- vs/30
-model <- as.gRapHD(edges)
+model <- new("gRapHD",edges=edges)
 plot(model,numIter=200,col.hl=colours()[386:383][a$v[,2]+1],
      vert.hl=a$v[,1],vert.radii=vs,border="black",lwd.vert=2)
 }

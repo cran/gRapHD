@@ -1,5 +1,5 @@
 Package: gRapHD
-Version: 0.2.1
+Version: 0.2.2
 Date: 2009-09-15
 Title: Efficient selection of undirected graphical models for
         high-dimensional datasets
@@ -9,6 +9,7 @@ Author: Gabriel Coelho Goncalves de Abreu <abreu_ga@yahoo.com.br>,
 Maintainer: Gabriel Coelho Goncalves de Abreu <abreu_ga@yahoo.com.br>
 Depends: R (>= 2.9.0), methods
 Suggests: graph
+Imports: graph
 LazyLoad: yes
 Description: gRapHD is designed for efficient selection of
         high-dimensional undirected graphical models. The package
@@ -19,6 +20,6 @@ Description: gRapHD is designed for efficient selection of
         supports the use of discrete, continuous, or both types of
         variables.
 License: GPL (>= 3)
-Packaged: 2011-04-26 12:26:07 UTC; Gabriel
+Packaged: 2011-05-26 13:38:30 UTC; Gabriel
 Repository: CRAN
-Date/Publication: 2011-04-26 15:30:02
+Date/Publication: 2011-05-26 20:48:43

@@ -27,8 +27,7 @@ fit(model=NULL, edges=NULL, dataset, homog=NULL)
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) 
+Gabriel Coelho Goncalves de Abreu (\email{abreu_ga@yahoo.com.br})
 }
 
 \references{
@@ -38,6 +37,6 @@ Lauritzen, S.L. (1996) \emph{Graphical Models}, Oxford University Press.\cr
 \examples{
 data(dsCont)
 m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-fit(edges=m1$edges,dataset=dsCont)
+fit(edges=m1@edges,dataset=dsCont)
 }
 \keyword{graphs}

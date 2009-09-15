@@ -9,7 +9,7 @@
 The first 5 variables are discrete, and the last 10 continuous.}
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
+Gabriel Coelho Goncalves de Abreu (\email{abreu_ga@yahoo.com.br}) \cr
 Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
 David Edwards (\email{David.Edwards@agrsci.dk})
 }

@@ -27,8 +27,7 @@ the degree of all vertices in \code{edges}. If \code{v} contains a vertex not in
 edges, the corresponding value is \code{NA}.}
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) 
+Gabriel Coelho Goncalves de Abreu (\email{abreu_ga@yahoo.com.br})
 }
 
 \examples{

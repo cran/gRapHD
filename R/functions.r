@@ -52,8 +52,11 @@
 #  summary.gRapHD <- function(object,...)
 #  modelFormula <- function(model)
 #  modelDim <- function(model)
-#  as.gRapHD <- function(object,...)
+#  matrix.gRapHD <- function(from)
+#  gRapHD.graphNEL <- function(from)
+#  graphNEL.gRapHD <- function(from)
 #  print.gRapHD <- function(x,...)
+#  show.gRapHD <- function(object,...)
 #  is.gRapHD <- function(object)
 #  jTree <- function(model)
 #  ccoeff <- function(model=NULL,edges=NULL,p=NULL)
@@ -64,20 +67,23 @@
 ################################################################################
 
 ################################################################################
-# gRapHD object:
-#   edges -  matrix with 2 columns, each row representing one edge, and each
-#             column one of the vertices in the edge. Column 1 contains the
-#             vertex with lower index.
-#   p - number of variables (vertices) in the model.
-#   stat.minForest - measure used (LR, AIC, or BIC).
-#   stat.stepw - measure used (LR, AIC, or BIC).
-#   statSeq - vector with value of stat.minForest for each edge.
-#   numCat - vector with number of levels for each variable (0 if continuous).
-#   homog - TRUE if the covariance is homogeneous.
-#   numP - vector with number of estimated parameters for each edge.
-#   minForest - first and last edges found with minForest.
-#   stepw - first and last edges found with stepw.
-#   userDef - first and last edges defined by the user.
+# gRapHD class:
+#   edges - integer, matrix with 2 columns, each row representing one edge,
+#           and each column one of the vertices in the edge. Column 1 contains
+#           the vertex with lower index.
+#   homog - logical, TRUE if the covariance is homogeneous.
+#   minForest - integer, first and last edges found with minForest.
+#   numCat - integer, vector with number of levels for each variable (0 if
+#            continuous).
+#   numP - integer, vector with number of estimated parameters for each edge.
+#   p - integer, number of variables (vertices) in the model.
+#   stat.minForest - character, measure used (LR, AIC, or BIC).
+#   stat.stepw - character, measure used (LR, AIC, or BIC).
+#   stat.user - character, user defined
+#   statSeq - numeric, vector with value of stat.minForest for each edge.
+#   stepw - interger, first and last edges found with stepw.
+#   userDef - integer, first and last edges defined by the user.
+#   vertNames - character, vector with vertices' names.
 ################################################################################
 
 ################################################################################
@@ -97,68 +103,67 @@ SubGraph <- function(model=NULL,edges=NULL,v=NULL,p=0)
     if (class(model)!="gRapHD")
       stop("Model must be of class gRapHD.")
     result <- model
-    edges <- model$edges
+    edges <- model@edges
   }
   else
   {
     p <- ifelse(NROW(edges)==0,p,max(max(edges),p))
-    result <- as.gRapHD(edges,p=p)
+    result <- new("gRapHD",edges=edges,p=p)
   }
 
   if (NROW(edges)==0)
-    return(as.gRapHD(NULL,p=result$p,numCat=result$numCat,homog=result$homog))
+    return(new("gRapHD",p=result@p,numCat=result@numCat,homog=result@homog))
 
   if (!is.null(v) & length(v)!=0)
   {
     v <- sort(unique(v))
-    if (max(v)>result$p)
-      stop(paste("v must be in [1,",result$p,"].",sep=""))
-    #ind <- apply(edges,1,function(x,y){length(intersect(x,y))==2},y=v)
+    if (max(v)>result@p)
+      stop(paste("v must be in [1,",result@p,"].",sep=""))
     ind <- (edges[,1]%in%v) & (edges[,2]%in%v)
-    result$edges <- matrix(edges[ind,],ncol=2)
-    result$statSeq <- result$statSeq[ind]
-    result$numP <- result$numP[ind]
-    result$vertNames <- result$vertNames[v]
-    result$numCat <- result$numCat[v]
-    aux <- rep(0,result$p)
+    result@edges <- matrix(edges[ind,],ncol=2)
+    result@statSeq <- result@statSeq[ind]
+    result@numP <- result@numP[ind]
+    result@vertNames <- result@vertNames[v]
+    result@numCat <- result@numCat[v]
+    aux <- rep(0,result@p)
     aux[v] <- 1:length(v)
-    result$edges <- cbind(aux[result$edges[,1]],aux[result$edges[,2]])
+    result@edges <- cbind(aux[result@edges[,1]],aux[result@edges[,2]])
     rm(aux)
     ind <- (1:nrow(edges))[ind]
     # if minForest was used, the resulting edges are the first in the list
     # and after come the edges from stepw
-    if (!is.null(result$minForest))
+    if (sum(result@minForest)!=0)
     {
       if (length(ind)==0)
-        result$minForest <- NULL
+        result@minForest <- integer(2)
       else
-        if (ind[1]>result$minForest[2])
-          result$minForest <- NULL
+        if (ind[1]>result@minForest[2])
+          result@minForest <- integer(2)
         else
         {
-          x <- which(ind<=result$minForest[2])
+          x <- which(ind<=result@minForest[2])
           x <- x[length(x)]
-          result$minForest <- c(1,x)
+          result@minForest <- as.integer(c(1,x))
         }
     }
-    if (!is.null(result$stepw))
+    if (sum(result@stepw)!=0)
     {
       if (length(ind)==0)
-        result$stepw <- NULL
+        result@stepw <- integer(2)
       else
-        if (ind[length(ind)]<result$stepw[1])
-          result$stepw <- NULL
+        if (ind[length(ind)]<result@stepw[1])
+          result@stepw <- integer(2)
         else
         {
-          x <- which(ind<=result$stepw[2])
+          x <- which(ind<=result@stepw[2])
           x <- x[length(x)]
-          result$stepw <- c(x,length(ind))
+          result@stepw <- as.integer(c(x,length(ind)))
         }
     }
-    if (!is.null(result$userDef))
+    if (sum(result@userDef)!=0)
       if (length(ind)>0)
-        result$userDef <- c(1,length(ind))
-    result$p <- length(v)
+        result@userDef <- as.integer(c(1,length(ind)))
+    result@p <- length(v)
   }
   return(result)
 }
@@ -196,8 +201,8 @@ MCS <- function(model=NULL,edges=NULL,v=0,p=NULL)
   {
     if (class(model)!="gRapHD")
       stop("Model must be of class gRapHD.")
-    edges <- model$edges
-    p <- model$p
+    edges <- model@edges
+    p <- model@p
   }
   else
     v <- max(c(v,1))  
@@ -235,8 +240,8 @@ DFS <- function(model=NULL,edges=NULL, v, p=NULL)
   {
     if (class(model)!="gRapHD")
       stop("Model must be of class gRapHD.")
-    edges <- model$edges
-    p <- model$p
+    edges <- model@edges
+    p <- model@p
   }
   else
     if (NROW(edges)==0 || NCOL(edges)!=2)
@@ -267,18 +272,7 @@ DFS <- function(model=NULL,edges=NULL, v, p=NULL)
 # the distribution of X to a CG distribution which is homogeneous, i.e. the
 # conditional covariance given the discrete variables does not depend on the
 # conditional.
-# Out: list = edges (matrix k by 2 with the edges, integer);
-#             logL (numeric, log L of the selected model)
-#             DF (integer, degrees of freedom) = p*(p-1)/2 - (p-1)
-#             p (integer, number of variables)
-#             stat.minForest(string, indicates which was used to build: LR,AIC,
-#                              BIC)
-#             end (integer, the last edge in the tree/forest)
-#             statSeq (weight of each edges - LR,BIC,AIC)
-#             numCat (vector, number of catagories in each discrete variable;
-#                     if the variable is continuous numCat=0)
-#             homog (boolean - if the covariance is homogeneous)
-#             numP (vector, number of parameters in each edge)
+# Out: gRapHD object
 ################################################################################
 minForest <- function(dataset,homog=TRUE,forbEdges=NULL,stat="BIC",cond=NULL,...)
 {
@@ -419,21 +413,20 @@ minForest <- function(dataset,homog=TRUE,forbEdges=NULL,stat="BIC",cond=NULL,...
     statSeq <- c(tree[,3],rep(NA,nrow(condEdges)))
     numP <- c(tree[,4],rep(NA,nrow(condEdges)))
   }
-  result <- list(edges = edges,
-                p = p,
+  result <- new("gRapHD",edges = edges,
+                p = as.integer(p),
                 stat.minForest = switch(stat+1,"LR","BIC","AIC","User's function"),
                 statSeq = statSeq,
-                numCat = numCat,
+                numCat = as.integer(numCat),
                 homog = homog,
-                numP = numP,
+                numP = as.integer(numP),
                 vertNames = result,
-                minForest = c(1,nrow(edges)))
-  class(result)<-"gRapHD"
-  if (dim(aux$errors)[1]!=0)
-  {
-    result$error <- aux$errors
-    warning("Check model$errors for edges with problems.", call. = FALSE)
-  }
+                minForest = as.integer(c(1,nrow(edges))))
+#  if (dim(aux$errors)[1]!=0)
+#  {
+#    result$error <- aux$errors
+#    warning("Check model$errors for edges with problems.", call. = FALSE)
+#  }
   return(result)
 }
 ################################################################################
@@ -540,7 +533,7 @@ chStat <- function(model,dataset,previous=NULL,forbEdges=NULL)
           clique1 <- c(edges.to.test[i,1],S)
           clique2 <- c(edges.to.test[i,2],S)
 
-          if (sum(model$numCat[clique]!=0) == 0) # continuous
+          if (sum(model@numCat[clique]!=0) == 0) # continuous
           {
             CM <- cov(dataset[,clique],use="pairwise.complete.obs")*(nrow(dataset)-1)
             if (sum(is.na(CM))) # meaning that the new edge does not have more
@@ -562,7 +555,7 @@ chStat <- function(model,dataset,previous=NULL,forbEdges=NULL)
             }
           }
           else
-            if (sum(model$numCat[clique]==0)==0) # discrete
+            if (sum(model@numCat[clique]==0)==0) # discrete
             {
               t12 <- table(as.data.frame(dataset[,clique]))
               t1 <- margin.table(t12,match(clique1,clique))
@@ -576,7 +569,7 @@ chStat <- function(model,dataset,previous=NULL,forbEdges=NULL)
 
               # because of join in findEd
               if (length(S)==0)
-                numP <- prod(model$numCat[clique]-1)#length(t12)-1
+                numP <- prod(model@numCat[clique]-1)#length(t12)-1
               else
                 numP <- sum(apply(t12,MARGIN=(1:length(clique))[-(1:2)],numbPar))
               ##
@@ -606,17 +599,17 @@ chStat <- function(model,dataset,previous=NULL,forbEdges=NULL)
             }
             else # mixed
             {
-              discrete   <- intersect(clique,which(model$numCat!=0))
+              discrete   <- intersect(clique,which(model@numCat!=0))
               continuous <- setdiff(clique,discrete)
               tab <- table(as.data.frame(dataset[,discrete]))
               ssd <- diag(0,length(continuous))
-              if (sum(model$numCat[edges.to.test[i,1:2]])==0) # both are continuous
-                if (model$homog)
+              if (sum(model@numCat[edges.to.test[i,1:2]])==0) # both are continuous
+                if (model@homog)
                 {
                   for (j in 1:length(tab))
                     if (tab[j]>0)
                     {
-                      ind <- apply(matrix(dataset[,discrete],,length(discrete)),1,whichSeq,y=seqLevels(j,model$numCat[discrete]))
+                      ind <- apply(matrix(dataset[,discrete],,length(discrete)),1,whichSeq,y=seqLevels(j,model@numCat[discrete]))
                       if (sum(ind)>1) #otherwise there is only one observation, and the contribution to the variance is zero
                         ssd <- ssd + cov(dataset[ind,continuous],use="pairwise.complete.obs")*(tab[j]-1)
                     }
@@ -634,7 +627,7 @@ chStat <- function(model,dataset,previous=NULL,forbEdges=NULL)
                   for (j in 1:length(tab))
                     if (tab[j]>0)
                     {
-                      ind <- apply(matrix(dataset[,discrete],,length(discrete)),1,whichSeq,y=seqLevels(j,model$numCat[discrete]))
+                      ind <- apply(matrix(dataset[,discrete],,length(discrete)),1,whichSeq,y=seqLevels(j,model@numCat[discrete]))
                       if (sum(ind)>1) #otherwise there is only one observation, and the contribution to the variance is zero
                         ssd <- cov(dataset[ind,continuous],use="pairwise.complete.obs")*(tab[j]-1)
                       edges.to.test[i,4] <- edges.to.test[i,4] +
@@ -647,18 +640,18 @@ chStat <- function(model,dataset,previous=NULL,forbEdges=NULL)
                 }
               else
               {
-                vDiscr <- (edges.to.test[i,1:2])[model$numCat[edges.to.test[i,1:2]]!=0]
+                vDiscr <- (edges.to.test[i,1:2])[model@numCat[edges.to.test[i,1:2]]!=0]
                 vCont  <- setdiff(edges.to.test[i,1:2],vDiscr)
                 discrMarg <- setdiff(discrete,vDiscr)
                 tabMarg <- margin.table(tab,match(discrMarg,discrete))
                 ssdMarg <- diag(0,length(continuous))
-                if (model$homog)
+                if (model@homog)
                 {
                   for (j in 1:length(tab))
                   {
                     if (tab[j]>0)
                     {
-                      ind <- apply(matrix(dataset[,discrete],,length(discrete)),1,whichSeq,y=seqLevels(j,model$numCat[discrete]))
+                      ind <- apply(matrix(dataset[,discrete],,length(discrete)),1,whichSeq,y=seqLevels(j,model@numCat[discrete]))
                       if (sum(ind)>1) #otherwise there is only one observation, and the contribution to the variance is zero
                         ssd <- ssd + var(dataset[ind,continuous],use="pairwise.complete.obs")*(tab[j]-1)
                     }
@@ -667,7 +660,7 @@ chStat <- function(model,dataset,previous=NULL,forbEdges=NULL)
                       if (tabMarg[j]>0)
                       {
                         if (length(discrMarg)>0)
-                          ind <- apply(matrix(dataset[,discrMarg],,length(discrMarg)),1,whichSeq,y=seqLevels(j,model$numCat[discrMarg]))
+                          ind <- apply(matrix(dataset[,discrMarg],,length(discrMarg)),1,whichSeq,y=seqLevels(j,model@numCat[discrMarg]))
                         else
                           ind <- rep(TRUE,tabMarg[j])
                         if (sum(ind)>1) #otherwise there is only one observation, and the contribution to the variance is zero
@@ -681,7 +674,7 @@ chStat <- function(model,dataset,previous=NULL,forbEdges=NULL)
                                             ifelse(length(continuous)>1,log(det(matrix(ssd[-ind,-ind],length(continuous)-1))),0) -
                                             log(det(ssdMarg)))
                   if (length(discrete)==1) #means that the separator is continuous
-                    edges.to.test[i,5] <- model$numCat[vDiscr]-1
+                    edges.to.test[i,5] <- model@numCat[vDiscr]-1
                   else
                   {
                     aux <- match(vDiscr,discrete) #position of the discrete variable in the new edge (in the list of discrete variables in the edge/separator)
@@ -691,7 +684,7 @@ chStat <- function(model,dataset,previous=NULL,forbEdges=NULL)
                     aux.ind <- which(aux.tab>0,arr.ind=TRUE) #cells with at least one observation
                     numP <- 0
 for (iii in 1:nrow(aux.ind))
-  numP <- numP + (sum(aux1[cbind(1:model$numCat[vDiscr],aux.ind[iii,])]>0) - 1)
+  numP <- numP + (sum(aux1[cbind(1:model@numCat[vDiscr],aux.ind[iii,])]>0) - 1)
                     rm(aux,aux1,aux.tab,aux.ind)
                     edges.to.test[i,5] <- numP
                   }
@@ -704,7 +697,7 @@ for (iii in 1:nrow(aux.ind))
                   {
                     if (tab[j]>0)
                     {
-                      ind <- apply(matrix(dataset[,discrete],,length(discrete)),1,whichSeq,y=seqLevels(j,model$numCat[discrete]))
+                      ind <- apply(matrix(dataset[,discrete],,length(discrete)),1,whichSeq,y=seqLevels(j,model@numCat[discrete]))
                       ssd <- var(dataset[ind,continuous],use="pairwise.complete.obs")*(tab[j]-1)
                       dim(ssd) <- rep(length(continuous),2)
                     }
@@ -713,7 +706,7 @@ for (iii in 1:nrow(aux.ind))
                       if (tabMarg[j]>0)
                       {
                         if (length(discrMarg)>0)
-                          ind <- apply(matrix(dataset[,discrMarg],,length(discrMarg)),1,whichSeq,y=seqLevels(j,model$numCat[discrMarg]))
+                          ind <- apply(matrix(dataset[,discrMarg],,length(discrMarg)),1,whichSeq,y=seqLevels(j,model@numCat[discrMarg]))
                         else
                           ind <- rep(TRUE,tabMarg[j])
                         ssdMarg <- var(dataset[ind,continuous],use="pairwise.complete.obs")*(tabMarg[j]-1)
@@ -740,7 +733,7 @@ for (iii in 1:nrow(aux.ind))
                     aux.ind <- which(aux.tab>(length(continuous)+1),arr.ind=TRUE)
                     numP <- 0
 for (iii in 1:nrow(aux.ind))
-  numP <- numP + (sum(aux1[cbind(1:model$numCat[vDiscr],aux.ind[iii,])]>0) - 1)
+  numP <- numP + (sum(aux1[cbind(1:model@numCat[vDiscr],aux.ind[iii,])]>0) - 1)
                     rm(aux,aux1,aux.tab,aux.ind)
                     edges.to.test[i,5] <- numP
                   }
@@ -779,21 +772,21 @@ stepw <- function(model,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL,
   else
   {
     star <- NULL
-    aux <- range(model$numCat)
+    aux <- range(model@numCat)
     if ((aux[1]==0) & (aux[2]!=0)) #mixed
     {
       # there are at least 2 discrete variables, which means that forbidden paths
       # are possible to happen
       # star graph
-      star <- cbind(which(model$numCat!=0),model$p+1)
-      perfect <- perfSets(edges=rbind(model$edges,star),
-                          p=model$p+1,varType=c(model$numCat,1),from=0)
+      star <- cbind(which(model@numCat!=0),model@p+1)
+      perfect <- perfSets(edges=rbind(model@edges,star),
+                          p=model@p+1,varType=c(model@numCat,1),from=0)
       if (!is.list(perfect))
         stop("The model is not strongly decomposable.")
       rm(perfect)
     }
     else
-      if (MCS(edges=model$edges,,p=model$p)[1]==0)
+      if (MCS(edges=model@edges,,p=model@p)[1]==0)
         stop("The model is not triangulated.")
     rm(aux)
   }
@@ -802,7 +795,7 @@ stepw <- function(model,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL,
   if (mode(stat)=="function")
   {
     FUN <- match.fun(stat)
-    model$stat.stepw <- "User's function"
+    model@stat.stepw <- "User's function"
     stat <- "USER"
   }
   else
@@ -810,22 +803,22 @@ stepw <- function(model,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL,
     stat <- toupper(stat)
     if (!is.element(stat,c("LR","AIC","BIC")))
       stop("No valid measure. Options: LR, BIC, AIC, or a user defined function.")
-    model$stat.stepw <- stat
+    model@stat.stepw <- stat
   }
 
-  edges.stepw <- nrow(model$edges)+1
+  edges.stepw <- nrow(model@edges)+1
 
-  if (model$p != NCOL(dataset))
-    stop("model$p doesn't agree with NCOL(dataset).")
+  if (model@p != NCOL(dataset))
+    stop("model@p doesn't agree with NCOL(dataset).")
 
   aux <- convData(dataset)
   dataset <- aux$ds
   numCat <- aux$numCat
-  if (!all.equal(numCat,model$numCat))
-    stop("model$numCat doesn't agree with data.")
-  if (!identical(sort(aux$vertNames),sort(model$vertNames)))
-    stop("model$vertNames doesn't agree with data.")
-  dataset <- dataset[,match(model$vertNames,aux$vertNames)]
+  if (!all.equal(numCat,model@numCat))
+    stop("model@numCat doesn't agree with data.")
+  if (!identical(sort(aux$vertNames),sort(model@vertNames)))
+    stop("model@vertNames doesn't agree with data.")
+  dataset <- dataset[,match(model@vertNames,aux$vertNames)]
   rm(aux)
   if (sum(is.na(dataset))>0)
     stop("Missing values not allowed.")
@@ -849,15 +842,15 @@ stepw <- function(model,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL,
 
   STOP <- FALSE # flag indicating when to stop
   iteration <- 0
-  if (!is.null(model$minForest))
-    iteration <- nrow(model$edges) - model$minForest[2]
+  if (!is.null(model@minForest))
+    iteration <- nrow(model@edges) - model@minForest[2]
   ch <- initial
   SS <- NULL
 
   while ((!STOP))
   {
     iteration <- iteration + 1
-    ch <- findEd(model$edges,p,ch,model$numCat,0,exact,join)
+    ch <- findEd(model@edges,p,ch,model@numCat,0,exact,join)
     if (stat!="USER")
       ch <- chStat(model,dataset,ch,forbEdges)
     else
@@ -904,7 +897,7 @@ stepw <- function(model,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL,
               {
                 # Lauritzen (1996, pg 11): Proposition 2.6 (Leimer) - An undirected,
                 # marked graph G is decomposable if and only if G* is triangulated.
-                continue <- (MCS(edges=rbind(model$edges,change[aux,1:2],star),v=1,p=p+!is.null(star)))[1] == 0
+                continue <- (MCS(edges=rbind(model@edges,change[aux,1:2],star),v=1,p=p+!is.null(star)))[1] == 0
                 add <- !continue #statValues[aux] <- !continue*statValues[aux] + continue*threshold
               }
               else
@@ -913,18 +906,18 @@ stepw <- function(model,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL,
       }
       if (add) # it improves the model
       {
-        model$edges <- rbind(model$edges,change[aux,1:2])
-        model$numP <- c(model$numP,change[aux,5])
-        model$statSeq <- c(model$statSeq,change[aux,4])
+        model@edges <- rbind(model@edges,change[aux,1:2])
+        model@numP <- as.integer(c(model@numP,change[aux,5]))
+        model@statSeq <- c(model@statSeq,change[aux,4])
       }
       else
         STOP <- TRUE
     }
   }
-  if (edges.stepw<=nrow(model$edges))
-    model$stepw <- c(edges.stepw,nrow(model$edges))
+  if (edges.stepw<=nrow(model@edges))
+    model@stepw <- as.integer(c(edges.stepw,nrow(model@edges)))
   else
-    model$stepw <- integer(0)
+    model@stepw <- integer(2)
   return(model)
 }
 ################################################################################
@@ -944,8 +937,8 @@ neighbours <- function(model=NULL,edges=NULL,v)
   {
     if (class(model)!="gRapHD")
       stop("Model must be of class gRapHD.")
-    edges <- model$edges
-    p <- model$p    
+    edges <- model@edges
+    p <- model@p
   }
   else
     if (NROW(edges)==0 || NCOL(edges)!=2)
@@ -1063,9 +1056,9 @@ perfSets <- function(model=NULL,edges=NULL,p=NULL,varType=0,from=0)
   {
     if (class(model)!="gRapHD")
       stop("Model must be of class gRapHD.")
-    edges <- model$edges
-    p <- model$p
-    varType <- model$numCat
+    edges <- model@edges
+    p <- model@p
+    varType <- model@numCat
     varType[varType!=0] <- 1
   }
   if ((NROW(edges)==0) && is.null(p))
@@ -1213,7 +1206,7 @@ calcStat <- function(dataset,homog=TRUE,forbEdges=NULL,stat="LR")
 #     main = main title
 #     plotVert = T or F (add the vertices)
 #     energy = T or F (use the minimum energy as initial values)
-#     useWeights = T or F (use the model$statSeq as edges lenght weights)
+#     useWeights = T or F (use the model@statSeq as edges lenght weights)
 #     vert.hl = list of vertices to highlight
 #     col.hl = colour to be used in the highlighted vertices
 #     vert.radii = radii of the edges (scalar or vector with length p)
@@ -1245,9 +1238,9 @@ plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
 {
   model <- x
   rm(x)
-  edges <- model$edges
-  varType <- model$numCat
-  p <- model$p
+  edges <- model@edges
+  varType <- model@numCat
+  p <- model@p
   originalOrder <- 1:p
   if (is.null(vert))
     vertices <- 1:p
@@ -1259,7 +1252,9 @@ plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
       stop("There are repeated vertices in vert.")
     originalOrder <- order(vert)
     vertices <- sort(vert)
-    edges <- SubGraph(edges=edges,v=vertices,p=max(edges))$edges
+#
+    edges <- SubGraph(edges=edges,v=vertices,p=max(edges))@edges
+#
     edges[,1] <- vertices[edges[,1]]
     edges[,2] <- vertices[edges[,2]]
   }
@@ -1309,7 +1304,7 @@ plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
         A <- matrix(0,p,nrow(edges))
         A[cbind(edges[,1],1:nrow(edges))] <- -1
         A[cbind(edges[,2],1:nrow(edges))] <- 1
-        Q <- A%*%diag(1/abs(model$statSeq))%*%t(A)
+        Q <- A%*%diag(1/abs(model@statSeq))%*%t(A)
       }
       tt <- eigen(Q, symmetric=T)
       v1 <- tt$vectors[ ,p]
@@ -1416,8 +1411,8 @@ plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
         text(x = coordV[, 1], y = coordV[, 2], vert.labels,
              cex = cex.vert.label, col = Fill, font = font)
       else
-        text(x = coordV[, 1], y = coordV[, 2], model$vertNames[vertices],
-             cex = cex.vert.label, col = Fill, font = font)    
+        text(x = coordV[, 1], y = coordV[, 2], model@vertNames[vertices],
+             cex = cex.vert.label, col = Fill, font = font)
     }
     if (!is.null(main))
       title(main=main)
@@ -1449,8 +1444,8 @@ neighbourhood <- function(model=NULL,edges=NULL,orig=NULL,rad=1)
   {
     if (class(model)!="gRapHD")
       stop("Model must be of class gRapHD.")
-    edges <- model$edges
-    p <- model$p
+    edges <- model@edges
+    p <- model@p
   }
   p <- 0
   if (NROW(edges)==0)
@@ -1487,7 +1482,7 @@ neighbourhood <- function(model=NULL,edges=NULL,orig=NULL,rad=1)
   colnames(v) <- c("vertex","rad")
   rownames(v) <- NULL
   V <- sort(unique(v[,1]))
-  subEdges <- SubGraph(edges=edges,v=V,p=p)$edges
+  subEdges <- SubGraph(edges=edges,v=V,p=p)@edges
   subEdges[,1] <- V[subEdges[,1]]
   subEdges[,2] <- V[subEdges[,2]]
   return(list(edges=subEdges,v=v))
@@ -1509,8 +1504,8 @@ adjMat <- function(model=NULL,edges=NULL,p=NULL)
   {
     if (class(model)!="gRapHD")
       stop("Model must be of class gRapHD.")
-    edges <- model$edges
-    p <- model$p
+    edges <- model@edges
+    p <- model@p
   }
   if ((NROW(edges)==0) && is.null(p))
     stop("p must not be NULL.")
@@ -1540,8 +1535,8 @@ Degree <- function(model=NULL,edges=NULL,v=NULL)
       stop("model must be of class gRapHD.")
     else
     {
-      p <- model$p
-      edges <- model$edges
+      p <- model@p
+      edges <- model@edges
     }
   else
     p <- max(c(max(edges),v))
@@ -1580,8 +1575,8 @@ shortPath <- function(model=NULL, edges=NULL, v=NULL, p=NULL)
       stop("model must be of class gRapHD.")
     else
     {
-      p <- model$p
-      edges <- model$edges
+      p <- model@p
+      edges <- model@edges
     }
   else
     if (is.null(p))
@@ -1665,7 +1660,7 @@ convData <- function(dataset)
     else
       stop("Input not numeric nor data frame.")
   if (is.null(vertNames))
-    vertNames <- 1:ncol(dataset)
+    vertNames <- as.character(1:ncol(dataset))
   return(list(ds=dataset,numCat=numCat,vertNames=vertNames))
 }
 ################################################################################
@@ -1689,8 +1684,8 @@ fit <- function(model=NULL,edges=NULL,dataset,homog=NULL)
 
   if (is.null(edges))
   {
-    edges <- model$edges
-    homog <- ifelse(is.null(homog),model$homog,homog)
+    edges <- model@edges
+    homog <- ifelse(is.null(homog),model@homog,homog)
   }
   else
     homog <- ifelse(is.null(homog),TRUE,homog)
@@ -1706,11 +1701,11 @@ fit <- function(model=NULL,edges=NULL,dataset,homog=NULL)
     stop("Missing values not allowed.")
   if (!is.null(model))
   {
-    if (!all.equal(numCat,model$numCat))
-      stop("model$numCat doesn't agree with data.")
-    if (!identical(sort(aux$vertNames),sort(model$vertNames)))
-      stop("model$vertNames doesn't agree with data.")
-    dataset <- dataset[,match(model$vertNames,aux$vertNames)]
+    if (!all.equal(numCat,model@numCat))
+      stop("model@numCat doesn't agree with data.")
+    if (!identical(sort(aux$vertNames),sort(model@vertNames)))
+      stop("model@vertNames doesn't agree with data.")
+    dataset <- dataset[,match(model@vertNames,aux$vertNames)]
   }
 
   if (length(unique(varType))==1) #all discrete or all continuous
@@ -1869,15 +1864,8 @@ fit <- function(model=NULL,edges=NULL,dataset,homog=NULL)
   if (!is.element(sum(varType)/p,c(1,0)))
   {
     if (is.null(model))
-    {
-      model <- list()
-      model$p <- p
-      model$edges <- edges
-      model$varType <- varType
-      model$numCat <- numCat
-      class(model) <- "gRapHD"
-    }
-    model$homog <- homog
+      model <- new("gRapHD",edges=edges,p=p,numCat=numCat)
+    model@homog <- homog
     numP <- modelDim(model)
   }
   result <- c(numP,-2*L,-2*L+2*numP,-2*L+numP*log(nrow(dataset)))
@@ -1888,30 +1876,25 @@ fit <- function(model=NULL,edges=NULL,dataset,homog=NULL)
 
 ################################################################################
 # To be used as useMethod by the summary function.
-# In: gRapHD object
 ################################################################################
 summary.gRapHD <- function(object,...)
 {
-  if (!is.gRapHD(object))
+  if (!is(object,"gRapHD"))
     stop("Not a gRapHD object.")
 
-  cat(paste("Number of edges       = ",nrow(object$edges),"\n",sep=""))
-  cat(paste("Number of vertices    = ",object$p,"\n",sep=""))
-  p <- max(c(1,object$p))
-  aux <- ifelse(sum(object$numCat)==0,"continuous",ifelse(sum(object$numCat!=0)/p==1,"discrete","mixed"))
-  aux1 <- ifelse(aux=="mixed",paste(" and ",ifelse(object$homog,"homogeneous","heterogeneous"),sep=""),"")
+  cat(paste("Number of edges       = ",nrow(object@edges),"\n",sep=""))
+  cat(paste("Number of vertices    = ",object@p,"\n",sep=""))
+  p <- max(c(1,object@p))
+  aux <- ifelse(sum(object@numCat)==0,"continuous",ifelse(sum(object@numCat!=0)/p==1,"discrete","mixed"))
+  aux1 <- ifelse(aux=="mixed",paste(" and ",ifelse(object@homog,"homogeneous","heterogeneous"),sep=""),"")
   cat(paste("Model                 = ",aux,aux1," \n",sep=""))
-  if (!is.null(object$stat.minForest))
-    cat(paste("Statistic (minForest) = ",object$stat.minForest,"\n",sep=""))
-  if (!is.null(object$stat.stepw))
-    cat(paste("Statistic (stepw)     = ",object$stat.stepw,"\n",sep=""))
-  if (!is.null(object$minForest))
-    cat(paste("Edges (minForest)     = ",object$minForest[1],"...",object$minForest[2],"\n",sep=""))
-  if (length(object$stepw)>0)
-    cat(paste("Edges (stepw)         = ",object$stepw[1],"...",object$stepw[2],"\n",sep=""))
-  else
-    if (!is.null(object$stepw))
-      cat(paste("Edges from stepw      = ","no edge added","\n",sep=""))
+
+  cat(paste("Statistic (minForest) = ",object@stat.minForest,"\n",sep=""))
+  cat(paste("Statistic (stepw)     = ",object@stat.stepw,"\n",sep=""))
+  cat(paste("Statistic (user def.) = ",object@stat.user,"\n",sep=""))
+  cat(paste("Edges (minForest)     = ",object@minForest[1],"...",object@minForest[2],"\n",sep=""))
+  cat(paste("Edges (stepw)         = ",object@stepw[1],"...",object@stepw[2],"\n",sep=""))
+  cat(paste("Edges (user def.)     = ",object@userDef[1],"...",object@userDef[2],"\n",sep=""))
   cat("\n")
 }
 ################################################################################
@@ -1932,17 +1915,17 @@ modelFormula <- function(model)
   psSub <- function(edges,p,v,varType)
   {
     n <- length(v)
-    edgesV <- SubGraph(edges=edges,v=v,p=model$p)$edges
+    edgesV <- SubGraph(edges=edges,v=v,p=model@p)@edges
     pSeq <- perfSets(edges=edgesV,p=n,varType=varType,from=0)
     for (i in 1:length(pSeq$cliques))
       pSeq$cliques[[i]] <- v[pSeq$cliques[[i]]]
     return(pSeq$cliques)
   }
 
-  edges <- model$edges
-  varType <- model$numCat
+  edges <- model@edges
+  varType <- model@numCat
   varType[varType!=0] <- 1
-  p <- model$p
+  p <- model@p
 
   discr <- which(varType==1)
   nDiscr <- length(discr)
@@ -1966,7 +1949,7 @@ modelFormula <- function(model)
     for (i in 1:length(cont))
     {
       aux <- list()
-      pSeq <- psSub(edges,model$p,c(discr,cont[i]),c(rep(1,nDiscr),0))
+      pSeq <- psSub(edges,model@p,c(discr,cont[i]),c(rep(1,nDiscr),0))
       for (j in 1:length(pSeq))
         if (is.element(cont[i],pSeq[[j]]))
           aux <- c(aux,list(sort(pSeq[[j]])))
@@ -1987,13 +1970,13 @@ modelFormula <- function(model)
       }
     }
 
-  if (model$homog)
+  if (model@homog)
   {
     quadratic <- linear
     linearX <- list()
     rm(linear)
     x <- sort(c(otherCont,cont))
-    pSeq <- psSub(edges,model$p,x,varType[x])
+    pSeq <- psSub(edges,model@p,x,varType[x])
     quadratic2 <- pSeq
   }
   else
@@ -2007,7 +1990,7 @@ modelFormula <- function(model)
           if ((i!=j) & (j<=length(cont)))
           {
             aux <- list()
-            pSeq <- psSub(edges,model$p,c(discr,cont[c(i,j)]),
+            pSeq <- psSub(edges,model@p,c(discr,cont[c(i,j)]),
                                          c(rep(1,nDiscr),0,0))
             for (k in 1:length(pSeq))
               if ((is.element(cont[i],pSeq[[k]]))&(is.element(cont[j],pSeq[[k]])))
@@ -2076,7 +2059,7 @@ modelFormula <- function(model)
       {
         x <- sort(unique(c(unlist(linear[dLinear[[i]]]),
                            unlist(quadratic[dQuadratic[[i]]]))))
-        pSeq <- psSub(edges,model$p,x,varType[x])
+        pSeq <- psSub(edges,model@p,x,varType[x])
         for (j in 1:length(pSeq))
           if (length(intersect(cont,pSeq[[j]]))==1)
             linearX <- c(linearX,pSeq[j])
@@ -2105,7 +2088,7 @@ modelFormula <- function(model)
     }
     # get the generators with only continuous variables
     x <- sort(c(otherCont,cont))
-    pSeq <- psSub(edges,model$p,x,varType[x])
+    pSeq <- psSub(edges,model@p,x,varType[x])
     for (i in 1:length(pSeq))
       if (length(intersect(pSeq[[i]],otherCont))>0)
         if (length(pSeq[[i]])==1)
@@ -2139,7 +2122,7 @@ modelDim <- function(model)
   for (i in 1:length(mf))
     mf[i] <- list(as.integer(mf[[i]]))
 
-  numCat <- as.integer(model$numCat)
+  numCat <- as.integer(model@numCat)
   storage.mode(exf) <- "integer"
   result <- .Call("modelDim",mf,exf,numCat,PACKAGE="gRapHD")
   return(result)
@@ -2147,67 +2130,7 @@ modelDim <- function(model)
 ################################################################################
 
 ################################################################################
-# To be used as useMethod by the as function.
-# In: at least a list of edges
-# Out: gRapHD object
-################################################################################
-as.gRapHD <- function(object,...)
-{
-  arg <- list(...)
-  result <- list()
-  n <- 0 # number of edges
-  p <- 0 # number of vertices
-  if (is.null(object))
-    object <- matrix(integer(0),,2) # empty list of edges
-  else
-    if (NCOL(object)==2) # matrix of edges
-    {
-      n <- NROW(object)
-      p <- ifelse(n==0,0,max(object))
-      if (n>0)
-      {
-        a <- object[,1]-object[,2] 
-        object[a>0,] <- cbind(object[a>0,2],object[a>0,1]) # sort rows
-        if (0%in%a)
-        {
-          warning("Self-loops removed.")
-          object <- object[-which(a==0),]
-        }
-        z0 <- (object[,1]-1)*p-(object[,1]-1)*object[,1]/2+object[,2]-object[,1]
-        z1 <- unique(z0)
-        if (length(z1)<n) # there are multiple edges
-        {
-          warning("Multiple edges removed.")
-          object <- object[match(z1,z0),]
-        }
-      }
-      n <- min(c(n,1))
-    }
-    else
-      stop("Object must be NULL, or with dimension (k,2).")
-  result$edges <- object
-  result$p <- ifelse(!is.null(arg$p),as.integer(arg$p),as.integer(p))
-  result$stat.user <- ifelse(!is.null(arg$stat),as.character(arg$stat),"LR")
-  result$statSeq <- if(!is.null(arg$statSeq)) as.numeric(arg$statSeq) else as.numeric(rep(NA,nrow(result$edges)))
-  result$numCat <- if(!is.null(arg$numCat)) as.integer(arg$numCat) else integer(result$p)
-  result$homog <- ifelse(!is.null(arg$homog),as.logical(arg$homog),TRUE)
-  result$numP <- if(!is.null(arg$numP)) as.numeric(arg$numP) else as.numeric(rep(NA,nrow(result$edges)))
-  if (!is.null(arg$vertNames))
-    result$vertNames <- arg$vertNames
-  else
-    if (result$p == 0)
-      result$vertNames <- NA
-    else
-      result$vertNames <- 1:result$p
-  result$userDef <- c(n,nrow(result$edges))
-  class(result)<-"gRapHD"
-  return(result)
-}
-################################################################################
-
-################################################################################
 # To be used as useMethod by the print function.
-# In: gRapHD object
 ################################################################################
 print.gRapHD <- function(x,...)
 {
@@ -2217,13 +2140,12 @@ print.gRapHD <- function(x,...)
 ################################################################################
 
 ################################################################################
-# To be used as useMethod by the is function.
-# In: gRapHD object
-# Out: T or F
+# To be used as useMethod by the show function.
 ################################################################################
-is.gRapHD <- function(object)
+show.gRapHD <- function(object)
 {
-  class(object) == "gRapHD"
+  cat("gRapHD object\n")
+  summary(object)
 }
 ################################################################################
 
@@ -2240,13 +2162,13 @@ is.gRapHD <- function(object)
 ################################################################################
 jTree <- function(model)
 {
-  if (!is.gRapHD(model))
+  if (!is(model,"gRapHD"))
     stop("Object is not of gRapHD class.")
     
-  v1 <- model$edges[,1]
-  v2 <- model$edges[,2]
-  p <- model$p
-  varType <- model$numCat
+  v1 <- model@edges[,1]
+  v2 <- model@edges[,2]
+  p <- model@p
+  varType <- model@numCat
   varType[varType!=0] <- 1
   storage.mode(v1) <- storage.mode(v2) <- "integer"
   storage.mode(p) <- "integer"
@@ -2273,8 +2195,8 @@ ccoeff <- function(model=NULL,edges=NULL,p=NULL)
   {
     if (class(model)!="gRapHD")
       stop("Model must be of class gRapHD.")
-    edges <- model$edges
-    p <- model$p
+    edges <- model@edges
+    p <- model@p
   }
   if (NROW(edges)==0)
     return(0)
@@ -2601,41 +2523,42 @@ normDens <- function (x, meanVec, covMat, logx = FALSE)
 ################################################################################
 
 ################################################################################
-# Converts objects between gRapHD and graphNEL classes.
-# In: object = gRapHD or graphNEL object
-# Out: object with class oposite to the one in the input
+# To be used as useMethod by the as function.
 ################################################################################
-convertClass <- function(object)
+# from matrix to gRapHD class
+matrix.gRapHD <- function(from)
 {
-  if (as.character(class(object))=="graphNEL")
+  result <- new("gRapHD",edges=from)
+  return(result)
+}
+# gRapHD -> graphNEL
+gRapHD.graphNEL <- function(from)
+{
+  require(graph)
+  edgeL <- vector("list",length=from@p)
+  names(edgeL) <- from@vertNames
+  I <- adjMat(edges=from@edges,p=from@p)
+  for (i in 1:from@p)
+    edgeL[[i]] <- list(edges=(1:from@p)[I[i,]==1],weights=rep(1,sum(I[i,])))
+  g1 <- new("graphNEL", nodes=as.character(from@vertNames), edgeL=edgeL, edgemode = "undirected")
+  return(g1)
+}
+# gRapHD <- graphNEL
+graphNEL.gRapHD <- function(from)
+{
+  v <- from@nodes
+  p <- length(from@nodes)
+  edges <- NULL
+  for (i in 1:p)
   {
-    v <- object@nodes
-    p <- length(object@nodes)
-    edges <- NULL
-    for (i in 1:p)
-    {
-      x <- object@edgeL[[v[i]]]$edges
-      if (length(x)>0)
-        edges <- rbind(edges,cbind(i,x))
-    }
-    edges <- t(apply(edges,1,sort))
-    edges <- unique(edges,MARGIN=1)
-
-    g1 <- as.gRapHD(edges,p=p,vertNames=names(object@edgeL))
+    x <- from@edgeL[[v[i]]]$edges
+    if (length(x)>0)
+      edges <- rbind(edges,cbind(i,x))
   }
-  else
-    if (class(object)=="gRapHD")
-    {
-      require(graph)
-      edgeL <- vector("list",length=object$p)
-      names(edgeL) <- object$vertNames
-      I <- adjMat(edges=object$edges,p=object$p)
-      for (i in 1:object$p)
-        edgeL[[i]] <- list(edges=(1:object$p)[I[i,]==1],weights=rep(1,sum(I[i,])))
-      g1 <- new("graphNEL", nodes=as.character(object$vertNames), edgeL=edgeL, edgemode = "undirected")
-    }
-    else
-      stop("object must be of class graphNEL or gRapHD.")
+  edges <- t(apply(edges,1,sort))
+  edges <- unique(edges,MARGIN=1)
+
+  g1 <- new("gRapHD",edges=edges,p=p,vertNames=names(from@edgeL))
   return(g1)
 }
 ################################################################################

@@ -27,13 +27,13 @@ between \code{max(edges)} and \code{p}.
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk})
+Gabriel Coelho Goncalves de Abreu (\email{abreu_ga@yahoo.com.br})
 }
 
 \examples{
 data(dsCont)
 m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-edges <- SubGraph(edges=m1$edges,v=1:10)$edges
+edges <- SubGraph(edges=m1@edges,v=1:10)@edges
 adjMat(edges=edges,p=10)
 }
 \keyword{graphs}

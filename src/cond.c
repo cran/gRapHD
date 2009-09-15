@@ -161,20 +161,6 @@ static unsigned int minimum(unsigned int *A)
 /******************************************************************************/
 
 /******************************************************************************/
-// The maximum value in a vector.
-/******************************************************************************/
-static unsigned int maximum(unsigned int *A)
-{
-  unsigned int i,m;
-  m = A[1];
-  for (i=1;i<=A[0];i++)
-    if (A[i]>m)
-      m = A[i];
-  return(m);
-}
-/******************************************************************************/
-
-/******************************************************************************/
 // Determines the components in a graph.
 // In: cond - pointer SEXP to a list in which each element is a clique
 // Out: int vector with the number of the componet that vertex is in.

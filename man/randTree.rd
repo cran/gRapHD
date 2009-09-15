@@ -26,7 +26,7 @@ randTree(p,seed=1)
 
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk})
+Gabriel Coelho Goncalves de Abreu (\email{abreu_ga@yahoo.com.br})
 }
 
 \references{
@@ -37,7 +37,7 @@ pp. 879-887, June 2003.
 
 \examples{
 tree <- randTree(p=10, seed=1)
-plot(as.gRapHD(tree$edges))
+plot(new("gRapHD",edges=tree$edges))
 tree
 # $edges
 #       [,1] [,2]

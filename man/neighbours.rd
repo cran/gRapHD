@@ -26,13 +26,13 @@ neighbours(model=NULL,edges=NULL,v)
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk})
+Gabriel Coelho Goncalves de Abreu (\email{abreu_ga@yahoo.com.br})
 }
 
 \examples{
 data(dsCont)
 m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-neigh <- neighbours(edges=m1$edges, v=22)
+neigh <- neighbours(edges=m1@edges, v=22)
 #    > neigh
 #    [1]  3  9 24 25
 }

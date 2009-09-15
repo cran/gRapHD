@@ -22,7 +22,7 @@ modelDim(model)
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
+Gabriel Coelho Goncalves de Abreu (\email{abreu_ga@yahoo.com.br}) \cr
 Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) 
 }
 

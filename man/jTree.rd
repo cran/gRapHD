@@ -33,14 +33,13 @@ jTree(model)
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) 
+Gabriel Coelho Goncalves de Abreu (\email{abreu_ga@yahoo.com.br})
 }
 
 \examples{
 edges <- matrix(c(1,2,2,3,2,4,2,5,2,6,3,4,4,
                   5,5,6,7,8,7,9,8,9,8,10,9,10),ncol=2,byrow=TRUE)
-m <- as.gRapHD(edges)
+m <- new("gRapHD",edges=edges)
 jT <- jTree(m)
 str(jT)
 # List of 5

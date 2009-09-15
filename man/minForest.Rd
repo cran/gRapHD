@@ -59,7 +59,7 @@ the data. Missing values are not allowed.
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
+Gabriel Coelho Goncalves de Abreu (\email{abreu_ga@yahoo.com.br}) \cr
 Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
 David Edwards (\email{David.Edwards@agrsci.dk})
 }
@@ -123,7 +123,7 @@ userFun <- function(newEdge,numCat,dataset)
 data(dsCont)
 m <- minForest(dsCont,stat="LR")
 m1 <- minForest(dsCont,stat=userFun)
-identical(m$edges,m1$edges)
+identical(m@edges,m1@edges)
 
 #######################################################################
 # Example with mandatory edges (the so-called conditional Chow-Liu 

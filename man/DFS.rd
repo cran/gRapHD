@@ -29,8 +29,7 @@ DFS(model=NULL,edges=NULL, v, p=NULL)
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) 
+Gabriel Coelho Goncalves de Abreu (\email{abreu_ga@yahoo.com.br})
 }
 
 \references{
@@ -44,12 +43,12 @@ set.seed(7,kind="Mersenne-Twister")
 dataset <- matrix(rnorm(1000),nrow=100,ncol=10)
 m <- minForest(dataset,stat="BIC")
 
-DFS(edges=m$edges,v=1,p=10)
+DFS(edges=m@edges,v=1,p=10)
 # [1] 5 2 9 8
 #######################################################################
 data(dsDiscr)
 m1 <- minForest(dsDiscr,homog=TRUE,forbEdges=NULL,stat="BIC")
-vertices <- DFS(edges=m1$edges, v=1, p=m1$p)
+vertices <- DFS(edges=m1@edges, v=1, p=m1@p)
 
 # result
 vertices
@@ -58,7 +57,7 @@ vertices
 
 # OR
 m1 <- minForest(dsDiscr,homog=TRUE,forbEdges=NULL,stat="LR")
-vertices <- DFS(edges=m1$edges, v=1, p=m1$p)
+vertices <- DFS(edges=m1@edges, v=1, p=m1@p)
 
 # result
 vertices

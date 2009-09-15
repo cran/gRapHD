@@ -29,8 +29,7 @@ MCS(model=NULL,edges=NULL,v=0,p=NULL)
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) 
+Gabriel Coelho Goncalves de Abreu (\email{abreu_ga@yahoo.com.br})
 }
 
 \references{
@@ -46,6 +45,6 @@ set.seed(7,kind="Mersenne-Twister")
 dataset <- matrix(rnorm(1000),nrow=100,ncol=10)
 m <- minForest(dataset,stat="BIC")
 
-MCS(edges=m$edges,v=1,p=10)
+MCS(edges=m@edges,v=1,p=10)
 }
 \keyword{graphs}

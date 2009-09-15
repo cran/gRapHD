@@ -38,7 +38,7 @@ chStat(model,dataset,previous=NULL,forbEdges=NULL)
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
+Gabriel Coelho Goncalves de Abreu (\email{abreu_ga@yahoo.com.br}) \cr
 Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
 David Edwards (\email{David.Edwards@agrsci.dk})
 }
@@ -46,7 +46,7 @@ David Edwards (\email{David.Edwards@agrsci.dk})
 \examples{
 data(dsCont)
 m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-ch <- findEd(m1$edges,m1$p,NULL,m1$varType,0)
+ch <- findEd(m1@edges,m1@p,NULL,0)
 ch <- chStat(m1,dsCont,ch,forbEdges=0)
 str(ch)
 # List of 2

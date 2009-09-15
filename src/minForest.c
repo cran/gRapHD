@@ -86,23 +86,6 @@ unsigned int *maxS(SEXP d)
 }
 
 /******************************************************************************/
-// Rounds a number.
-// In: x - double, number to be rounded
-//     places - unsigned char, number of decimal places
-// Out: rounded number (double)
-/******************************************************************************/
-static double Round(double x, unsigned char places)
-{
-  double const shift = powf(10.0f, places);
-
-  x *= shift;
-  x = floorf( x + 0.5f );
-  x /= shift;
-
-  return(x);
-}
-
-/******************************************************************************/
 // Creates a new node, with the parameters.
 // In: v - double, the LR for the edge
 //     edge - unsigned int, index of the edge

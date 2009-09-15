@@ -30,13 +30,13 @@ Calculates the shortest path between the vertex \code{v} and all other
 vertices.}
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
+Gabriel Coelho Goncalves de Abreu (\email{abreu_ga@yahoo.com.br}) \cr
 Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) 
 }
 
 \examples{
 data(dsCont)
 m1 <- minForest(dsCont,homog=TRUE,forbEdges=NULL,stat="LR")
-shortPath(edges=m1$edges,v=1)
+shortPath(edges=m1@edges,v=1)
 }
 \keyword{graphs}

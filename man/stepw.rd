@@ -60,7 +60,7 @@ stepw(model,dataset,stat="BIC",saveCH=NULL,forbEdges=NULL,
 }
 
 \author{
-Gabriel Coelho Goncalves de Abreu (\email{Gabriel.Abreu@agrsci.dk}) \cr
+Gabriel Coelho Goncalves de Abreu (\email{abreu_ga@yahoo.com.br}) \cr
 Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
 David Edwards (\email{David.Edwards@agrsci.dk})
 }
@@ -175,7 +175,7 @@ data(dsCont)
 m <- minForest(dsCont,stat="BIC")
 m1 <- stepw(m,dsCont,stat="BIC")
 m2 <- stepw(m,dsCont,stat=userFun)
-identical(m1$edges,m2$edges)
+identical(m1@edges,m2@edges)
 
 #######################################################################
 # Example of joining disjoint components
@@ -183,9 +183,9 @@ data(dsCont)
 m <- minForest(dsCont,stat="BIC")
 m1 <- stepw(m,dsCont)
 m2 <- m
-m2$edges <- matrix(integer(0),,2)
+m2@edges <- matrix(integer(0),,2)
 m3 <- stepw(m2,dsCont,join=TRUE)
-identical(sortMat(m1$edges),sortMat(m3$edges))
+identical(sortMat(m1@edges),sortMat(m3@edges))
 # TRUE
 }
 \keyword{graphs}
