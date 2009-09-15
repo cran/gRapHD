@@ -19,7 +19,7 @@ A simple example using the Iris dataset is as follows
 data(iris)
 gF <- minForest(iris)
 gD <- stepw(gF, data=iris)
-plotG(gD)
+plot(gD)
 </pre>
 
 The <code>minForest</code> function finds the minimum BIC forest for the dataframe Iris. The <code>stepw</code> function
