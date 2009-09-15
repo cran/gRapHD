@@ -1,7 +1,7 @@
 useDynLib(gRapHD)
 
 export(minForest,calcStat,chStat,DFS,findEd,neighbours,MCS,perfSets,randTree,
-       stepw,rowProds,sortMat,plotG,SubGraph,neighbourhood,adjMat,Degree,
+       stepw,rowProds,sortMat,SubGraph,neighbourhood,adjMat,Degree,
        shortPath,convData,fit,modelFormula,modelDim,jTree,ccoeff,
        summary.gRapHD,print.gRapHD,is.gRapHD,as.gRapHD,plot.gRapHD,
        CI.test,convertClass)

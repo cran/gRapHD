@@ -35,7 +35,9 @@
   \item{p}{number of variables (vertices) in the model.}
   \item{stat.minForest}{measure used (LR, AIC, or BIC).}
   \item{statSeq}{vector with value of \code{stat.minForest} for each edge.}
-  \code{vertNames} - vector with the original vertices' names.\cr
+  \item{vertNames}{vector with the original vertices' names. If there is no
+                   names in \code{dataset} then the vertices will be named
+                   according to the original column indexes.}
   \item{numCat}{vector with number of levels for each variable (0 if continuous).}
   \item{homog}{\code{TRUE} if the covariance is homogeneous.}
   \item{numP}{vector with number of estimated parameters for each edge.}
@@ -45,9 +47,9 @@
 \details{
 Returns for the tree or forest that minimizes the -2*log-likelihood, AIC, or
 BIC. If the log-likelihood is used, the result is a tree, if AIC or BIC is used,
-the result is a tree or forest.The \code{dataset} contains variables
+the result is a tree or forest. The \code{dataset} contains variables
 (vertices) in the columns, and observations in the rows. The result has vertices
-numbered according to the column indexes in \code{dataset}.\cr
+numbered according to the column indexes in \code{vertNames}.\cr
 All discrete variables must be factors. All factor levels must be represented in
 the data. Missing values are not allowed.
 }

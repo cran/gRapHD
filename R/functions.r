@@ -36,11 +36,6 @@
 #  perfSets <- function(model=NULL,edges=NULL,p=NULL,varType=0,from=0)
 #  rowProds <- function(x,na.rm=TRUE)
 #  calcStat <- function(dataset,homog=TRUE,forbEdges=NULL,stat="LR")
-#  plotG <- function(model=NULL,edges=NULL,v=NULL,numIter=50,main=NULL,tcex=1,
-#                    plotVert=TRUE,labelVert=TRUE,energy=FALSE,
-#                    useWeights=FALSE,hlv=NULL,hlc="red",vs=0.01,
-#                    pos=NULL,edcol="darkgray",edlty=1,edlwd=1,vlcol=0,
-#                    sb=1,lcex=.40,vlabs=NULL,asp=NA,disp=TRUE,font=1)
 #  plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
 #                          plotVert=TRUE,labelVert=TRUE,energy=FALSE,
 #                          useWeights=FALSE,vert.hl=NULL,col.hl="red",
@@ -123,6 +118,7 @@ SubGraph <- function(model=NULL,edges=NULL,v=NULL,p=0)
     result$statSeq <- result$statSeq[ind]
     result$numP <- result$numP[ind]
     result$vertNames <- result$vertNames[v]
+    result$numCat <- result$numCat[v]
     aux <- rep(0,result$p)
     aux[v] <- 1:length(v)
     result$edges <- cbind(aux[result$edges[,1]],aux[result$edges[,2]])
@@ -1122,252 +1118,6 @@ calcStat <- function(dataset,homog=TRUE,forbEdges=NULL,stat="LR")
 ################################################################################
 
 ################################################################################
-# WARNING: maintained only for compatibility. Use instead plot.gRapHD
-#
-# Plot the graph using Fruchterman-Reingold algorithm.
-# Fruchterman, T. M. J., & Reingold, E. M. (1991). Graph Drawing by
-# Force-Directed Placement. Software: Practice and Experience, 21(11).
-# In: model = gRapHD object
-#     edges = dataset (n by 2, numeric).
-#     v = list of vertices to be plotted
-#     numIter = number of iterations for Fruchterman-Reingold algorithm
-#     main = main title
-#     tcex = Numeric character expansion factor for the main title; multiplied
-#            by par yields the final character size. NULL and NA are equivalent
-#            to 1.0
-#     plotVert = T or F (add the vertices)
-#     labelVert = T or F (add the vertices labels)
-#     energy = T or F (use the minimum energy as initial values)
-#     useWeights = T or F (use the model$statSeq as edges lenght weights)
-#     hlv = list of vertices to highlight
-#     hlc = colour to be used in the highlighted vertices
-#     vs = radii of the edges (scalar or vector with length p)
-#     pos = matrix (number of vertices by 2) with initial coordenates
-#     edcol = colour of the edges
-#     edlty = type of line to be used for the edges
-#     edlwd = width of the edges
-#     vlcol = colour of the vertices borders (length 1 or number of vertices)
-#     sb = symbol to be used in the vertices (length 1 or number of vertices)
-#          1 is a circle, 2 a square, 3 or higher represents the number of
-#          sides
-#     lcex = numeric character expansion factor for the labels; multiplied by
-#            par yields the final character size. NULL and NA are equivalent to
-#            1.0.
-#     vlabs = labels to be used in the vertices.
-#     asp = the aspect ratio y/x (see plot.window for more details).
-#     disp = plot (TRUE) or not (FALSE)
-#
-# Out: coordV = matrix (2xp) with the coordinates of the vertices
-################################################################################
-plotG <- function(model=NULL,edges=NULL,v=NULL,numIter=50,main=NULL,tcex=1,
-                  plotVert=TRUE,labelVert=TRUE,energy=FALSE,
-                  useWeights=FALSE,hlv=NULL,hlc="red",vs=0.01,
-                  pos=NULL,edcol="darkgray",edlty=1,edlwd=1,vlcol=0,
-                  sb=1,lcex=.40,vlabs=NULL,asp=NA,disp=TRUE,font=1)
-
-{
-  warning("Function mantained only for compatibility. Use instead plot.gRapHD")
-  if (!is.null(edges))
-  {
-    if (!is.null(model))
-      stop("Only one (model or edges) should be provided.")
-    if (useWeights)
-      stop("Weights can only be used with model.")
-    if (is.null(v))
-      vertices <- unique(as.vector(edges))
-    else
-    {
-      if (length(v)!=length(unique(v)))
-        stop("There are repeated vertices in v.")
-      vertices <- v
-      edges <- SubGraph(edges=edges,v=vertices,p=max(edges))$edges
-      edges[,1] <- vertices[edges[,1]]
-      edges[,2] <- vertices[edges[,2]]
-    }
-    originalOrder <- order(vertices)
-    vertices <- sort(vertices)
-    p <- length(vertices)
-    varType <- rep(0,max(vertices))
-  }
-  else
-  {
-    if (is.null(model))
-      stop("Model or edges should be provided.")
-    edges <- model$edges
-    varType <- model$numCat
-    p <- model$p
-    originalOrder <- 1:p
-    if (is.null(v))
-      vertices <- 1:p
-    else
-    {
-      if ((max(v) > p) || (min(v) < 1))
-        stop("v has vertices that are not in the model.")
-      if (length(v)!=length(unique(v)))
-        stop("There are repeated vertices in v.")
-      originalOrder <- order(v)
-      vertices <- sort(v)
-      edges <- SubGraph(edges=edges,v=vertices,p=p)$edges
-    }
-    p <- length(vertices)
-  }
-  # vertices radii
-  if (length(vs)>1)
-  {
-    if (length(vs)!=p)
-      stop("The vector with vertices radii must have length 1 or p.")
-  }
-  else
-    vs <- rep(vs,p)
-  # test if all vertices to bi highlighted are in the graph
-  if (sum(is.element(hlv,vertices))<length(hlv))
-     stop("Only vertices plotted can be highlighted.")
-  # colour of vertices border
-  if (length(vlcol)==1)
-    vlcol <- rep(vlcol,p)
-  else
-    if (length(vlcol)!=p)
-       stop("vlcol must have length 1 or p.")
-  # shape of the vertices
-  if (length(sb)==1)
-    sb <- rep(sb,p)
-  else
-    if (length(sb)!=p)
-       stop("sb must have length 1 or p.")
-
-  # initialise vertices coordenates
-  if (!is.null(pos)) # if it is given by the user
-  {
-    if (NROW(pos)!=length(vertices))
-      stop("pos must have the same number of rows as vertices.")
-    w <- p^2/4
-    pos <- w*(2*pos-1) # the algorithm uses the graph centered in (0,0)
-  }
-  else
-    if (!energy) # or using a lattice
-    {
-      w <- floor(sqrt(p))
-      x <- seq(from=-p^2/4,to=p^2/4,by=(2*p^2/4)/w)
-      y <- seq(from=p^2/4,to=-p^2/4,by=-(2*p^2/4)/w)
-      x <- matrix(rep(x,w+1),nrow=w+1,byrow=T)
-      y <- matrix(rep(y,w+1),nrow=w+1)
-      x <- t(x)
-      y <- t(y)
-      pos <- cbind(as.vector(x),as.vector(y))
-      pos <- pos[1:p,]
-    }
-    else # using minimum energy
-    {
-      if (!useWeights)
-      {
-        A <- adjMat(edges=edges, p)
-        Q <- -A
-        diag(Q) <- rowSums(A)
-      }
-      else
-      {
-        A <- matrix(0,p,nrow(edges))
-        A[cbind(edges[,1],1:nrow(edges))] <- -1
-        A[cbind(edges[,2],1:nrow(edges))] <- 1
-        Q <- A%*%diag(1/model$statSeq)%*%t(A)
-      }
-      tt <- eigen(Q, symmetric=T)
-      v1 <- tt$vectors[ ,p]
-      v2 <- tt$vectors[ ,p-1]
-      v3 <- tt$vectors[ ,p-2]
-      u1 <- v1
-      u2 <- v2 - sum(v2*u1)*u1
-      u3 <- v3 - sum(v3*u1)*u1 - sum(v3*u2)*u2
-      pos <- cbind(u3,u2)+cbind(1:p,1:p)/(1000*p)
-    }
-  aux <- rep(0,max(vertices))
-  aux[vertices] <- 1:length(vertices)
-  edgesL <- cbind(aux[edges[,1]],aux[edges[,2]])
-  storage.mode(p) <- "integer"
-  storage.mode(edgesL) <- "integer"
-  storage.mode(numIter) <- "integer"
-  storage.mode(pos) <- "double"
-  coordV <- .Call("frucRein",edgesL,p,numIter,pos,PACKAGE="gRapHD")
-  # rescale coordenates
-  if (p > 1)
-  {
-    coordV[,1] <- ((coordV[,1]-min(coordV[,1]))/max(coordV[,1]-min(coordV[,1])))
-    coordV[,2] <- ((coordV[,2]-min(coordV[,2]))/max(coordV[,2]-min(coordV[,2])))
-    coordV[is.na(coordV)] <- .5
-  }
-  else
-    coordV[1,] <- c(.5,.5*.9)
-
-  if (disp) # if it is to be plotted
-  {
-    plot.new()
-    par(mar=c(0,0,1.5*!is.null(main),0),oma=c(0,0,0,0))
-    plot.window(c(0,1), c(0,1), asp=asp)
-    coordE <- matrix(0,nrow(edges),4)
-    if (length(edgesL)>0)
-      for (i in 1:nrow(edgesL))
-      {
-        coordE[i,1:2] <- c(coordV[edgesL[i,1],1],coordV[edgesL[i,2],1])
-        coordE[i,3:4] <- c(coordV[edgesL[i,1],2],coordV[edgesL[i,2],2])
-        lines(x=coordE[i,1:2],
-              y=coordE[i,3:4],
-              col=edcol,lty=edlty,lwd=edlwd)#col="darkgray",lty=1,lwd=1)
-      }
-
-    if (plotVert)
-    {
-      xy <- list(x=cos(seq(0,2*pi,2*pi/25)),y=sin(seq(0,2*pi,2*pi/25)))
-      sb <- sb[originalOrder]
-      vs <- vs[originalOrder]
-      vlcol <- vlcol[originalOrder]
-      Fill <- rep("lightgray",length(varType))
-      Fill[varType!=0] <- "black"
-      Fill[hlv] <- hlc
-      Fill <- Fill[vertices]
-      for (j in 1:nrow(coordV))
-      {
-        if (sb[j]==0)
-          polygon(xy$x*vs[j]*2+coordV[j,1],xy$y*vs[j]+coordV[j,2],border=vlcol[j],col=Fill[j])
-        else
-          if (sb[j]==1)
-            symbols(x=coordV[j,1],y=coordV[j,2],circles=vs[j],inches=FALSE,add=TRUE,bg=Fill[j],
-                    fg=vlcol[j])
-          else
-            if (sb[j]==2)
-              symbols(x=coordV[j,1],y=coordV[j,2],squares=vs[j],inches=FALSE,add=TRUE,bg=Fill[j],
-                      fg=vlcol[j])
-            else
-              if (sb[j]>=3)
-              {
-                z1 <- rep(vs[j],sb[j])
-                dim(z1) <- c(1,sb[j])
-                symbols(x=coordV[j,1],y=coordV[j,2],stars=z1,inches=FALSE,add=TRUE,bg=Fill[j],
-                        fg=vlcol[j])
-              }
-      }
-    }
-    if (labelVert)
-    {
-      Fill <- rep("white",length(varType))
-      Fill[varType==0] <- "black"
-      Fill <- Fill[vertices]
-
-      if (!is.null(vlabs))
-        text(x=coordV[,1],y=coordV[,2],vlabs,cex=lcex,col=Fill,font=font)
-      else
-        text(x=coordV[,1],y=coordV[,2],vertices,cex=lcex,col=Fill,font=font)
-    }
-
-    if (!is.null(main))
-      title(main=main,cex.main=tcex,col="black",font=2,adj=0.5)
-  }
-  
-  invisible(coordV)
-}
-################################################################################
-
-
-################################################################################
 # Plot the graph using Fruchterman-Reingold algorithm.
 # Fruchterman, T. M. J., & Reingold, E. M. (1991). Graph Drawing by
 # Force-Directed Placement. Software: Practice and Experience, 21(11).
@@ -1376,7 +1126,6 @@ plotG <- function(model=NULL,edges=NULL,v=NULL,numIter=50,main=NULL,tcex=1,
 #     numIter = number of iterations for Fruchterman-Reingold algorithm
 #     main = main title
 #     plotVert = T or F (add the vertices)
-#     labelVert = T or F (add the vertices labels)
 #     energy = T or F (use the minimum energy as initial values)
 #     useWeights = T or F (use the model$statSeq as edges lenght weights)
 #     vert.hl = list of vertices to highlight
@@ -1401,11 +1150,11 @@ plotG <- function(model=NULL,edges=NULL,v=NULL,numIter=50,main=NULL,tcex=1,
 # Out: matrix (2xp) with the coordinates of the vertices
 ################################################################################
 plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
-                        plotVert=TRUE,labelVert=TRUE,energy=FALSE,
+                        plotVert=TRUE,energy=FALSE,
                         useWeights=FALSE,vert.hl=NULL,col.hl="red",
                         vert.radii=0.01,coord=NULL,col.ed="darkgray",lty.ed=1,
                         lwd.ed=1,lwd.vert=1,border=0,symbol.vert=1,
-                        cex.vert.label=.40,vert.labels=NULL,asp=NA,disp=TRUE,
+                        cex.vert.label=.40,vert.labels=TRUE,asp=NA,disp=TRUE,
                         font=par("font"),...)
 {
   model <- x
@@ -1566,17 +1315,19 @@ plot.gRapHD <- function(x,vert=NULL,numIter=50,main="",
               }
       }
     }
-    if (labelVert)
+    pLabels <- if (vert.labels[1]==F) FALSE else TRUE
+    if (pLabels)
     {
       Fill <- rep("white",length(varType))
       Fill[varType==0] <- "black"
       Fill <- Fill[vertices]
 
-      if (!is.null(vert.labels))
-        text(x=coordV[,1],y=coordV[,2],vert.labels,cex=cex.vert.label,col=Fill,font=font)
+      if (!is.logical(vert.labels[1]))
+        text(x = coordV[, 1], y = coordV[, 2], vert.labels,
+             cex = cex.vert.label, col = Fill, font = font)
       else
-        text(x=coordV[,1],y=coordV[,2],model$vertNames[vertices],cex=cex.vert.label,col=Fill,font=font)
-    }
+        text(x = coordV[, 1], y = coordV[, 2], model$vertNames[vertices],
+             cex = cex.vert.label, col = Fill, font = font)    }
 
     if (!is.null(main))
       title(main=main)

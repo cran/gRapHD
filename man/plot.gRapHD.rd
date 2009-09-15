@@ -8,11 +8,11 @@
 
 \usage{
 \method{plot}{gRapHD}(x,vert=NULL,numIter=50,main="",
-     plotVert=TRUE,labelVert=TRUE,energy=FALSE,
-     useWeights=FALSE,vert.hl=NULL,col.hl="red",
-     vert.radii=0.01,coord=NULL,col.ed="darkgray",lty.ed=1,
+     plotVert=TRUE,energy=FALSE,useWeights=FALSE,
+     vert.hl=NULL,col.hl="red",vert.radii=0.01,
+     coord=NULL,col.ed="darkgray",lty.ed=1,
      lwd.ed=1,lwd.vert=1,border=0,symbol.vert=1,
-     cex.vert.label=.40,vert.labels=NULL,asp=NA,disp=TRUE,
+     cex.vert.label=.40,vert.labels=TRUE,asp=NA,disp=TRUE,
      font=par("font"),...)
 }
 
@@ -23,7 +23,6 @@
   \item{numIter}{number of iterations for the Fruchterman-Reingold algorithm.}
   \item{main}{main title.}
   \item{plotVert}{if \code{TRUE} the vertices are plotted.}
-  \item{labelVert}{if \code{TRUE} the vertices are labelled.}
   \item{energy}{if \code{TRUE} use the minimum energy as initial values.}
   \item{useWeights}{if \code{TRUE} use the \code{model$statSeq} as edge length
                     weights).}
@@ -43,8 +42,8 @@
   \item{cex.vert.label}{numeric character expansion factor for the labels; multiplied by
               \code{\link[graphics:par]{par}} yields the final character size.
               \code{NULL} and \code{NA} are equivalent to \code{1.0}.}
-  \item{vert.labels}{labels to be used in the vertices. If \code{NULL}, the vertices
-               numbers are used.}
+  \item{vert.labels}{labels to be used in the vertices. If \code{FALSE}, the vertices
+               are not labeled.}
   \item{asp}{numeric, giving the aspect ratio y/x
              (see \code{\link[graphics:plot.window]{plot.window}} for more details).}
   \item{disp}{if \code{TRUE} (default), the graph is plotted.}
