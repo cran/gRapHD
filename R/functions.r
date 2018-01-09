@@ -2535,7 +2535,7 @@ matrix.gRapHD <- function(from)
 # gRapHD -> graphNEL
 gRapHD.graphNEL <- function(from)
 {
-  #library(graph) #require(graph)
+  # requireNamespace(graph)
   edgeL <- vector("list",length=from@p)
   names(edgeL) <- from@vertNames
   I <- adjMat(edges=from@edges,p=from@p)

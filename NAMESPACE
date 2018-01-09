@@ -1,4 +1,4 @@
-useDynLib(gRapHD)
+useDynLib(gRapHD, .registration = TRUE)
 
 export(minForest,calcStat,chStat,DFS,findEd,neighbours,MCS,perfSets,randTree,
        stepw,rowProds,sortMat,SubGraph,neighbourhood,adjMat,Degree,
@@ -6,13 +6,18 @@ export(minForest,calcStat,chStat,DFS,findEd,neighbours,MCS,perfSets,randTree,
        summary.gRapHD,print.gRapHD,show.gRapHD,plot.gRapHD,CI.test,
        matrix.gRapHD,gRapHD.graphNEL,graphNEL.gRapHD,initialize.gRapHD,stepb)
 
-importFrom(methods)
+#importFrom(methods,is,as)
 
 importClassesFrom(graph,graphNEL)
 
-       
-#S3method(summary, gRapHD)
-#S3method(print, gRapHD)
+importFrom("graphics", "lines", "par", "plot.new", "plot.window",
+             "polygon", "symbols", "text", "title")
+importFrom("methods", "is", "new")
+importFrom("stats", "addmargins", "cov", "dnorm", "ftable",
+             "mahalanobis", "var")
+
+S3method(summary, gRapHD)
+S3method(print, gRapHD)
+S3method(plot, gRapHD)
 #S3method(is, gRapHD)
 #S3method(as, gRapHD)
-#S3method(plot, gRapHD)

@@ -1,6 +1,6 @@
-105851c1c51703ab146c718218c099c7 *DESCRIPTION
-947cad57cf29ec328fa45ce2bd765278 *NAMESPACE
-37f6ca28f0d77988da56cde28c361013 *R/functions.r
+a88b2014dc94d10d61cdcd1caa53d2e6 *DESCRIPTION
+726ca0e875ccd1f5ec51c5db51d5f954 *NAMESPACE
+35395d7223da54453d2fc7e5cf008902 *R/functions.r
 aaa0afc5eaf2b4865afbeb74d2578120 *R/gRapHD_class.r
 a20b6214939be5a390a35dca917d7b31 *data/dsCont.RData
 a9605b77c1a3220223ebb7ee5000bb78 *data/dsDiscr.RData
@@ -47,5 +47,6 @@ a4fd8196b0e428b823769d727f05ed31 *src/comfunc.c
 ab9b8c61b0b0b9023c34e67d63a1e497 *src/mcs.c
 fbf2bf5d79f5d046ad3cc067d62ebc51 *src/minForest.c
 22cc7bb3df77611980a2073083d3061f *src/modelDim.c
+dd9c396cd830bebc7a39e857cf91ad67 *src/registerDynamicalSymbol.c
 39d265dd27fef0b7dc66a6a1cd5d568f *src/rowProds.c
 8ab9642b8d8a277ca7c9c40637cf80ff *src/shortPath.c
