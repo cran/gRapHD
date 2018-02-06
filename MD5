@@ -1,4 +1,4 @@
-a88b2014dc94d10d61cdcd1caa53d2e6 *DESCRIPTION
+2963f81caf7207e3d7cec5d1a20bd30c *DESCRIPTION
 726ca0e875ccd1f5ec51c5db51d5f954 *NAMESPACE
 35395d7223da54453d2fc7e5cf008902 *R/functions.r
 aaa0afc5eaf2b4865afbeb74d2578120 *R/gRapHD_class.r
@@ -13,7 +13,7 @@ ced871bde4ce92c0bad416e00fe03520 *inst/doc/index.html
 394e50c9d1299b603a6cab9b304b3d1d *man/MCS.rd
 d5704fc079b1cfef4e986d73513dae38 *man/SubGraph.rd
 de474cf675520c0d4f0978ae5b827f4d *man/adjMat.rd
-1e5373527540389785b05362ac326857 *man/calcStat.rd
+fe360f9f5b15995d651483a0b391aeb0 *man/calcStat.rd
 d3cd9fd99b0cf92db30d3865a5e6d732 *man/ccoeff.rd
 72ab6ee17ad863ddf3aa7139681056c7 *man/chStat.rd
 62a14fc2439b9d70157a903dafb74d10 *man/convData.rd
@@ -25,9 +25,9 @@ e5bbcd90f0e310d43f5e63db1587e274 *man/dsDiscr.rd
 c92a1c3845bc94bb7505ce85e48fe9df *man/gRapHD-class.rd
 53edfc773198d8e0e247808a2fa66f6c *man/gRapHD.rd
 ca9258da53ce54e8ec1813948d323aec *man/jTree.rd
-2864c7537d698db338d10e2530172050 *man/minForest.Rd
-f135712dd2302f79ff1ed7874f584094 *man/modelDim.rd
-3966364851e10a72ec11fa32093f8343 *man/modelFormula.rd
+bfac1db5b5a1360ca4fb487d80357daf *man/minForest.Rd
+6975345870875546752b77151905bf9a *man/modelDim.rd
+75426f5bf733fa0ba976fbda0098ec44 *man/modelFormula.rd
 c83827675138bfae8acc0c0205e5cbc9 *man/neighbourhood.rd
 75da3e8698a422e2bb0b49689be1bd45 *man/neighbours.rd
 2e7bf2b985311052e0a418a6362d3e7c *man/perfSets.rd
@@ -42,10 +42,10 @@ a4fd8196b0e428b823769d727f05ed31 *src/comfunc.c
 6dc5f70d6b5cc538e029ecd2f4c73351 *src/comfunc.h
 60f0f3e064bb4d58dfc7da6e9a3c42b8 *src/cond.c
 7ed6854376b63b5d32d0a558b0447f05 *src/dfs.c
-75d3ec504491a40030d71f960568d768 *src/findEd.c
+2f80be80090d707af36031a37c4c5057 *src/findEd.c
 3a1e84bb5c35e0b0dcc63165bf12e44b *src/frucRein.c
 ab9b8c61b0b0b9023c34e67d63a1e497 *src/mcs.c
-fbf2bf5d79f5d046ad3cc067d62ebc51 *src/minForest.c
+fd087b5c03d57a2895317256c94adcdd *src/minForest.c
 22cc7bb3df77611980a2073083d3061f *src/modelDim.c
 dd9c396cd830bebc7a39e857cf91ad67 *src/registerDynamicalSymbol.c
 39d265dd27fef0b7dc66a6a1cd5d568f *src/rowProds.c

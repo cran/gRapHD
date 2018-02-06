@@ -36,7 +36,8 @@ Lauritzen, S.L. (1996) \emph{Graphical Models}, Oxford University Press.\cr
 \examples{
 data(dsMixed)
 m <- minForest(dsMixed,homog=TRUE,stat="LR")
-str(modelFormula(m))
+modelFormula(m)
+# str(modelFormula(m))
 #List of 4
 # $ discrete  :List of 4
 #  ..$ : int [1:2] 1 3

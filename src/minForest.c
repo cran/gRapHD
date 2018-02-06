@@ -278,29 +278,29 @@ static void vecBT(struct nodeBT *curr, double *stat, unsigned int *edges,
 //     p - unsigned int, number of vertices
 // Out: none (it updates the three vectors in "In")
 /******************************************************************************/
-static void errorEdges(struct nodeBT *curr, unsigned int *vert1,
-                       unsigned int *vert2, unsigned int p)
-{
-  unsigned int *w;
-
-  if (curr == NULL) return; //reached the end of a branch
-
-  //recur to a subtree
-  errorEdges(curr->greater,vert1,vert2,p);
-
-  if ((curr->value != curr->value) || (!finite(curr->value))) // NaN or Inf
-  {
-    w = getVertBT(curr->edge,p); //get the vertices relative to that index
-    vert1[0]++;
-    vert2[0]++;
-    vert1[vert1[0]] = w[0];
-    vert2[vert2[0]] = w[1];
-    free(w);
-  }
-  //recur to a subtree
-  errorEdges(curr->less,vert1,vert2,p);
-  free(curr); //release the node (it has already been visited)
-}
+// static void errorEdges(struct nodeBT *curr, unsigned int *vert1,
+//                        unsigned int *vert2, unsigned int p)
+// {
+//   unsigned int *w;
+// 
+//   if (curr == NULL) return; //reached the end of a branch
+// 
+//   //recur to a subtree
+//   errorEdges(curr->greater,vert1,vert2,p);
+// 
+//   if ((curr->value != curr->value) || (!finite(curr->value))) // NaN or Inf
+//   {
+//     w = getVertBT(curr->edge,p); //get the vertices relative to that index
+//     vert1[0]++;
+//     vert2[0]++;
+//     vert1[vert1[0]] = w[0];
+//     vert2[vert2[0]] = w[1];
+//     free(w);
+//   }
+//   //recur to a subtree
+//   errorEdges(curr->less,vert1,vert2,p);
+//   free(curr); //release the node (it has already been visited)
+// }
 
 /******************************************************************************/
 // To clean the memory (the tree) when needed.
@@ -308,13 +308,13 @@ static void errorEdges(struct nodeBT *curr, unsigned int *vert1,
 // In: root - pointer to nodeBT
 // Out: -
 /******************************************************************************/
-static void cleanMem(struct nodeBT *root)
-{
-  if (root == NULL) return; //reached the end of a branch
-  cleanMem(root->greater); //recur to a subtree
-  cleanMem(root->less); //recur to a subtree
-  free(root); //release the node (it has already been visited)
-}
+// static void cleanMem(struct nodeBT *root)
+// {
+//   if (root == NULL) return; //reached the end of a branch
+//   cleanMem(root->greater); //recur to a subtree
+//   cleanMem(root->less); //recur to a subtree
+//   free(root); //release the node (it has already been visited)
+// }
 
 /******************************************************************************/
 // Build the real tree, based on the LR calculated, and release the nodes.

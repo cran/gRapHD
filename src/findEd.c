@@ -1058,7 +1058,7 @@ void jTree(unsigned int *C[],unsigned int *S[],unsigned int numC,
     STOP = false;
     j = i-1;
     if (S[i][0]!=0)
-      while((!STOP) && (j>=0))
+      while(!STOP)  // while((!STOP) && (j>=0))
       {
         aux = intersect(S[i],C[j]);
         STOP = aux[0]==S[i][0];

@@ -60,7 +60,7 @@ the data. Missing values are not allowed.
 
 \author{
 Gabriel Coelho Goncalves de Abreu (\email{abreu_ga@yahoo.com.br}) \cr
-Rodrigo Labouriau (\email{Rodrigo.Labouriau@agrsci.dk}) \cr
+Rodrigo Labouriau (\email{Rodrigo.Labouriau@math.au.dk}) \cr
 David Edwards (\email{David.Edwards@agrsci.dk})
 }
 
@@ -101,7 +101,7 @@ plot(m1,numIter=1000)
 #######################################################################
 # Example with mixed variables
 data(dsMixed)
-# m1 <- minForest(dataset,homog=TRUE,forbEdges=NULL,stat="LR")
+m1 <- minForest(dataset,homog=TRUE,forbEdges=NULL,stat="LR")
 #          1. it is to be considered homogeneous
 #          2. no forbidden edges
 #          3. the measure used is the LR (the result is a tree)

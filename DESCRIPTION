@@ -1,9 +1,9 @@
 Package: gRapHD
-Version: 0.2.5
+Version: 0.2.6
 Title: Efficient Selection of Undirected Graphical Models for
         High-Dimensional Datasets
 Author: Gabriel Coelho Goncalves de Abreu <abreu_ga@yahoo.com.br>,
-        Rodrigo Labouriau <rodrigo.labouriau@math.au.dk>, 
+        Rodrigo Labouriau <rodrigo.labouriau@math.au.dk>,
         David Edwards <david.edwards@agrsci.dk>.
 Maintainer: Rodrigo Labouriau <rodrigo.labouriau@math.au.dk>
 Depends: R (>= 2.9.0), methods
@@ -20,6 +20,6 @@ Description: Performs efficient selection of high-dimensional undirected
 License: GPL (>= 3)
 NeedsCompilation: yes
 RoxygenNote: 6.0.1
-Packaged: 2018-01-08 16:01:21 UTC; rodrigo
+Packaged: 2018-02-06 16:05:57 UTC; rodrigo
 Repository: CRAN
-Date/Publication: 2018-01-09 13:05:03 UTC
+Date/Publication: 2018-02-06 17:40:23 UTC
